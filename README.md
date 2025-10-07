@@ -11,6 +11,7 @@ PORT=5000 <br>
 MONGODB_URI=Add provided link here by mongodb cloud<br>
 JWT_SECRET=your_super_secret_jwt_key_here =>> generate this from https://jwtsecrets.com/<br>
 NODE_ENV=development<br>
+EMAIL_SERVICE=ethereal<br>
 
 save it.
 
