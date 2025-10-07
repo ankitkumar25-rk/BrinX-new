@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BrinX - Post Request</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body class="bg-dark min-h-screen">
+    <div id="star-field" class="star-field"></div>
+
+    <nav class="glass-card mx-4 my-4 sticky top-4 z-50">
+      <div class="container mx-auto px-6 py-4">
+        <div class="flex justify-between items-center">
+          <h1 class="text-3xl font-black gradient-text">
+            Brin<span id="logo-x">X</span>
+          </h1>
+          <div class="hidden md:flex items-center space-x-2">
+            <a href="dashboard.html" class="nav-link">Home</a>
+            <a href="post-request.html" class="nav-link active">Post Request</a>
+            <a href="view-requests.html" class="nav-link">View Requests</a>
+            <a href="assigned-tasks.html" class="nav-link">Assigned Tasks</a>
+            <button
+              id="logout-btn"
+              class="bg-red-500 bg-opacity-20 border border-red-500 text-red-300 px-5 py-2 rounded-lg font-bold hover:bg-opacity-30"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container mx-auto px-6 py-10 relative z-10">
+      <div class="max-w-2xl mx-auto">
+        <div class="text-center mb-10">
+          <h2 class="text-5xl font-black gradient-text mb-3">
+            Post a Task Request
+          </h2>
+          <p class="text-gray-400 text-lg">
+            Get help from your fellow students
+          </p>
+        </div>
+
+        <div class="glass-card p-10">
+          <div
+            id="success-message"
+            class="hidden bg-green-500 bg-opacity-20 border border-green-500 text-green-300 px-5 py-4 rounded-lg mb-6"
+          >
+            <span id="success-text"></span>
+          </div>
+          <div
+            id="error-message"
+            class="hidden bg-red-500 bg-opacity-20 border border-red-500 text-red-300 px-5 py-4 rounded-lg mb-6"
+          >
+            <span id="error-text"></span>
+          </div>
+
+          <form id="post-request-form" class="space-y-6">
+            <div>
+              <label class="block text-gray-300 text-sm font-bold mb-3">
+                Task Description *
+              </label>
+              <textarea
+                id="request"
+                rows="6"
+                class="input-field resize-none"
+                placeholder="Describe your task in detail... What do you need help with?"
+                required
+              ></textarea>
+              <p class="text-xs text-gray-500 mt-2">
+                Be clear and specific about your requirements
+              </p>
+            </div>
+
+            <div>
+              <label class="block text-gray-300 text-sm font-bold mb-3">
+                Deadline *
+              </label>
+              <input
+                type="datetime-local"
+                id="deadline"
+                class="input-field"
+                required
+              />
+              <p class="text-xs text-gray-500 mt-2">
+                When do you need this completed?
+              </p>
+            </div>
+
+            <div>
+              <label class="block text-gray-300 text-sm font-bold mb-3">
+                Reward *
+              </label>
+              <input
+                type="text"
+                id="reward"
+                class="input-field"
+                placeholder="e.g., ₹100, Coffee, Lunch treat, etc."
+                required
+              />
+              <p class="text-xs text-gray-500 mt-2">
+                What are you offering in return?
+              </p>
+            </div>
+
+            <button type="submit" class="btn-primary w-full text-lg mt-8">
+              Post Request 🚀
+            </button>
+          </form>
+
+          <div class="mt-8 text-center">
+            <a
+              href="dashboard.html"
+              class="text-purple-400 font-bold hover:text-purple-300"
+            >
+              ← Back to Dashboard
+            </a>
+          </div>
+        </div>
+
+        <div class="mt-8 glass-card p-6">
+          <h3 class="font-black text-white mb-3 flex items-center">
+            <span class="text-2xl mr-2">💡</span>
+            Tips for posting tasks
+          </h3>
+          <ul class="text-sm text-gray-400 space-y-2 ml-8">
+            <li class="list-disc">Be clear and specific about what you need</li>
+            <li class="list-disc">Set a reasonable deadline</li>
+            <li class="list-disc">Offer a fair reward</li>
+            <li class="list-disc">
+              Respond promptly when someone accepts your task
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/stars.js"></script>
+    <script src="js/animations.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+      if (!localStorage.getItem("token")) {
+        window.location.href = "index.html";
+      }
+
+      const today = new Date();
+      today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+      document.getElementById("deadline").min = today
+        .toISOString()
+        .slice(0, 16);
+
+      document
+        .getElementById("post-request-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const formData = {
+            request: document.getElementById("request").value.trim(),
+            deadline: document.getElementById("deadline").value,
+            reward: document.getElementById("reward").value.trim(),
+          };
+
+          const submitButton = document.querySelector('button[type="submit"]');
+          submitButton.disabled = true;
+          submitButton.textContent = "Posting...";
+
+          try {
+            const token = localStorage.getItem("token");
+
+            const response = await fetch(API_BASE_URL + "/tasks/post-request", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify(formData),
+            });
+
+            const data = await response.json();
+
+            if (response.status === 201 || response.status === 200) {
+              showSuccess("Task posted successfully! Redirecting...");
+              document.getElementById("post-request-form").reset();
+
+              setTimeout(() => {
+                window.location.href = "dashboard.html";
+              }, 1500);
+            } else {
+              throw new Error(data.message || "Failed to post task");
+            }
+          } catch (error) {
+            console.error("Post task error:", error);
+            showError(error.message || "Failed to post task");
+            submitButton.disabled = false;
+            submitButton.textContent = "Post Request 🚀";
+          }
+        });
+
+      document.getElementById("logout-btn").addEventListener("click", () => {
+        localStorage.clear();
+        window.location.href = "index.html";
+      });
+
+      function showSuccess(message) {
+        const div = document.getElementById("success-message");
+        const text = document.getElementById("success-text");
+        text.textContent = message;
+        div.classList.remove("hidden");
+        document.getElementById("error-message").classList.add("hidden");
+      }
+
+      function showError(message) {
+        const div = document.getElementById("error-message");
+        const text = document.getElementById("error-text");
+        text.textContent = message;
+        div.classList.remove("hidden");
+        document.getElementById("success-message").classList.add("hidden");
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BrinX - Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body
+    class="bg-dark min-h-screen flex items-center justify-center relative overflow-hidden"
+  >
+    <div id="star-field" class="star-field"></div>
+
+    <div class="container mx-auto px-4 relative z-10">
+      <div class="max-w-md mx-auto">
+        <div class="text-center mb-12">
+          <h1 class="text-7xl font-black gradient-text mb-4">
+            Brin<span id="logo-x">X</span>
+          </h1>
+          <p class="text-gray-300 text-lg">
+            "Get your task done — smarter, faster, together."
+          </p>
+        </div>
+
+        <div class="glass-card p-10">
+          <h2 class="text-3xl font-bold text-white mb-8 text-center">
+            Welcome Back
+          </h2>
+
+          <div
+            id="error-message"
+            class="hidden bg-red-500 bg-opacity-20 border border-red-500 text-red-300 px-5 py-4 rounded-lg mb-6"
+          >
+            <span id="error-text"></span>
+          </div>
+
+          <form id="login-form" class="space-y-6">
+            <div>
+              <label class="block text-gray-300 text-sm font-semibold mb-2">
+                Email Address
+              </label>
+              <input
+                type="email"
+                id="email"
+                class="input-field"
+                placeholder="your.email@college.edu"
+                required
+              />
+            </div>
+
+            <div>
+              <label class="block text-gray-300 text-sm font-semibold mb-2">
+                Password
+              </label>
+              <input
+                type="password"
+                id="password"
+                class="input-field"
+                placeholder="Enter your password"
+                required
+              />
+            </div>
+
+            <button type="submit" class="btn-primary w-full text-lg">
+              Login to BrinX
+            </button>
+          </form>
+
+          <div class="mt-6 text-center">
+            <a
+              href="forgot-password.html"
+              class="text-sm text-purple-400 hover:text-purple-300"
+            >
+              Forgot Password?
+            </a>
+          </div>
+
+          <div class="mt-6 text-center">
+            <p class="text-gray-400">
+              Don't have an account?
+              <a
+                href="signup.html"
+                class="text-purple-400 font-bold hover:text-purple-300"
+                >Create Account</a
+              >
+            </p>
+          </div>
+        </div>
+
+        <div class="text-center mt-8 text-gray-500 text-sm">
+          <p>Made with ❤️ for college students</p>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/stars.js"></script>
+    <script src="js/animations.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+  </body>
+</html>

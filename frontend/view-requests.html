@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BrinX - View Requests</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body class="bg-dark min-h-screen">
+    <div id="star-field" class="star-field"></div>
+
+    <nav class="glass-card mx-4 my-4 sticky top-4 z-50">
+      <div class="container mx-auto px-6 py-4">
+        <div class="flex justify-between items-center">
+          <h1 class="text-3xl font-black gradient-text">
+            Brin<span id="logo-x">X</span>
+          </h1>
+          <div class="hidden md:flex items-center space-x-2">
+            <a href="dashboard.html" class="nav-link">Home</a>
+            <a href="post-request.html" class="nav-link">Post Request</a>
+            <a href="view-requests.html" class="nav-link active"
+              >View Requests</a
+            >
+            <a href="assigned-tasks.html" class="nav-link">Assigned Tasks</a>
+            <button
+              id="logout-btn"
+              class="bg-red-500 bg-opacity-20 border border-red-500 text-red-300 px-5 py-2 rounded-lg font-bold hover:bg-opacity-30"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container mx-auto px-6 py-10 relative z-10">
+      <div class="mb-10 text-center">
+        <h2 class="text-5xl font-black gradient-text mb-3">Available Tasks</h2>
+        <p class="text-gray-400 text-lg">
+          Browse and accept tasks from your peers
+        </p>
+      </div>
+
+      <div class="mb-8 flex space-x-2 glass-card inline-flex p-2 mx-auto">
+        <button
+          id="tab-available"
+          class="px-8 py-3 font-bold text-white bg-purple-600 bg-opacity-50 rounded-lg"
+        >
+          Accept a Request
+        </button>
+        <button
+          id="tab-accepted"
+          class="px-8 py-3 font-bold text-gray-400 hover:text-white rounded-lg"
+        >
+          Accepted Requests
+        </button>
+      </div>
+
+      <div id="available-content" class="tab-content">
+        <div
+          id="available-tasks"
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        >
+          <div class="col-span-full text-center py-16">
+            <div class="text-6xl mb-4">⏳</div>
+            <p class="text-gray-400 font-medium text-lg">Loading tasks...</p>
+          </div>
+        </div>
+      </div>
+
+      <div id="accepted-content" class="tab-content hidden">
+        <div
+          id="accepted-tasks"
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        >
+          <div class="col-span-full text-center py-16">
+            <div class="text-6xl mb-4">📋</div>
+            <p class="text-gray-400 font-medium text-lg">
+              No accepted tasks yet
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="self-accept-modal"
+      class="hidden fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+    >
+      <div class="glass-card max-w-md w-full p-10 text-center">
+        <div class="text-6xl mb-6">⚠️</div>
+        <h3 class="text-3xl font-black text-white mb-3">Cannot Accept</h3>
+        <p class="text-gray-400 mb-8 text-lg">
+          You cannot accept your own request.
+        </p>
+        <button id="close-self-accept-modal" class="btn-primary px-8 py-3">
+          Got it
+        </button>
+      </div>
+    </div>
+
+    <div
+      id="confirm-modal"
+      class="hidden fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+    >
+      <div class="glass-card max-w-md w-full p-10">
+        <h3 class="text-3xl font-black text-white mb-4">Accept Task?</h3>
+        <p class="text-gray-400 mb-8 text-lg">
+          Are you sure you want to accept this task? You will be responsible for
+          completing it by the deadline.
+        </p>
+        <div class="flex space-x-4">
+          <button id="confirm-accept" class="flex-1 btn-primary py-4">
+            Yes, Accept
+          </button>
+          <button id="cancel-accept" class="flex-1 btn-secondary py-4">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/stars.js"></script>
+    <script src="js/animations.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+      if (!localStorage.getItem("token")) {
+        window.location.href = "index.html";
+      }
+
+      const user = JSON.parse(localStorage.getItem("user"));
+      let selectedTaskId = null;
+
+      const tabButtons = document.querySelectorAll(
+        "#tab-available, #tab-accepted"
+      );
+      tabButtons.forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          tabButtons.forEach((b) => {
+            b.classList.remove("bg-purple-600", "bg-opacity-50", "text-white");
+            b.classList.add("text-gray-400");
+          });
+          e.target.classList.add(
+            "bg-purple-600",
+            "bg-opacity-50",
+            "text-white"
+          );
+          e.target.classList.remove("text-gray-400");
+
+          if (e.target.id === "tab-available") {
+            document
+              .getElementById("available-content")
+              .classList.remove("hidden");
+            document.getElementById("accepted-content").classList.add("hidden");
+          } else {
+            document
+              .getElementById("available-content")
+              .classList.add("hidden");
+            document
+              .getElementById("accepted-content")
+              .classList.remove("hidden");
+            loadAcceptedTasks();
+          }
+        });
+      });
+
+      async function loadAvailableTasks() {
+        try {
+          const data = await apiCall("/tasks/get-requests", "GET");
+          const container = document.getElementById("available-tasks");
+
+          const openTasks = data.tasks.filter((task) => {
+            return (
+              task.status === "open" && task.posted_by !== user.roll_number
+            );
+          });
+
+          if (openTasks.length === 0) {
+            container.innerHTML = `
+                        <div class="col-span-full text-center py-16">
+                            <div class="text-6xl mb-4">📭</div>
+                            <p class="text-gray-400 font-medium text-lg">No available tasks at the moment</p>
+                        </div>
+                    `;
+            return;
+          }
+
+          container.innerHTML = openTasks
+            .map((task) => {
+              const deadline = new Date(task.deadline);
+
+              return `
+                        <div class="task-card">
+                            <h3 class="text-lg font-black text-white mb-3 leading-tight">${task.request.substring(
+                              0,
+                              100
+                            )}${task.request.length > 100 ? "..." : ""}</h3>
+                            <div class="space-y-2 text-sm mb-4">
+                                <p class="text-gray-400">
+                                    <span class="font-bold text-gray-300">Posted by:</span> ${
+                                      task.posted_by_name
+                                    }
+                                </p>
+                                <p class="text-gray-400">
+                                    <span class="font-bold text-gray-300">Deadline:</span> ${deadline.toLocaleDateString()} ${deadline.toLocaleTimeString()}
+                                </p>
+                                <p class="text-gray-400">
+                                    <span class="font-bold text-gray-300">Reward:</span> <span class="text-green-400 font-black text-base">${
+                                      task.reward
+                                    }</span>
+                                </p>
+                            </div>
+                            <div class="flex space-x-3 mt-4">
+                                <button 
+                                    onclick="acceptTask('${task._id}', false)" 
+                                    class="flex-1 btn-primary py-3"
+                                >
+                                    Accept
+                                </button>
+                                <button 
+                                    onclick="rejectTask('${task._id}', this)" 
+                                    class="flex-1 btn-secondary py-3"
+                                >
+                                    Reject
+                                </button>
+                            </div>
+                        </div>
+                    `;
+            })
+            .join("");
+
+          anime({
+            targets: ".task-card",
+            translateY: [50, 0],
+            opacity: [0, 1],
+            delay: anime.stagger(100),
+            duration: 600,
+            easing: "easeOutExpo",
+          });
+        } catch (error) {
+          console.error("Error loading tasks:", error);
+        }
+      }
+
+      async function loadAcceptedTasks() {
+        try {
+          const data = await apiCall("/tasks/my-accepted-tasks", "GET");
+          const container = document.getElementById("accepted-tasks");
+
+          if (data.tasks.length === 0) {
+            container.innerHTML = `
+                        <div class="col-span-full text-center py-16">
+                            <div class="text-6xl mb-4">📋</div>
+                            <p class="text-gray-400 font-medium text-lg">You haven't accepted any tasks yet</p>
+                        </div>
+                    `;
+            return;
+          }
+
+          container.innerHTML = data.tasks
+            .map((task) => {
+              const deadline = new Date(task.deadline);
+
+              return `
+                        <div class="glass-card p-6">
+                            <span class="badge badge-${
+                              task.status === "completed"
+                                ? "success"
+                                : task.status === "verified"
+                                ? "info"
+                                : "warning"
+                            }">${task.status.toUpperCase()}</span>
+                            <h3 class="text-lg font-black text-white mb-3 mt-2">${task.request.substring(
+                              0,
+                              100
+                            )}${task.request.length > 100 ? "..." : ""}</h3>
+                            <p class="text-sm text-gray-400 mb-2">
+                                <span class="font-bold">Deadline:</span> ${deadline.toLocaleDateString()}
+                            </p>
+                            <p class="text-sm text-gray-400 mb-4">
+                                <span class="font-bold">Reward:</span> <span class="text-green-400 font-black">${
+                                  task.reward
+                                }</span>
+                            </p>
+                            ${
+                              task.status === "accepted"
+                                ? `
+                                <a href="assigned-tasks.html" class="inline-block btn-primary px-6 py-3 text-sm">
+                                    Complete Task →
+                                </a>
+                            `
+                                : ""
+                            }
+                        </div>
+                    `;
+            })
+            .join("");
+        } catch (error) {
+          console.error("Error loading accepted tasks:", error);
+        }
+      }
+
+      window.acceptTask = function (taskId, isOwnTask) {
+        selectedTaskId = taskId;
+        document.getElementById("confirm-modal").classList.remove("hidden");
+      };
+
+      document
+        .getElementById("confirm-accept")
+        .addEventListener("click", async () => {
+          try {
+            await apiCall(`/tasks/accept-request/${selectedTaskId}`, "POST");
+            document.getElementById("confirm-modal").classList.add("hidden");
+            loadAvailableTasks();
+            alert("Task accepted successfully!");
+          } catch (error) {
+            alert(error.message || "Failed to accept task");
+          }
+        });
+
+      document.getElementById("cancel-accept").addEventListener("click", () => {
+        document.getElementById("confirm-modal").classList.add("hidden");
+      });
+
+      document
+        .getElementById("close-self-accept-modal")
+        .addEventListener("click", () => {
+          document.getElementById("self-accept-modal").classList.add("hidden");
+        });
+
+      window.rejectTask = async function (taskId, element) {
+        const taskCard = element.closest(".task-card");
+
+        if (!confirm("Delete this task permanently?")) {
+          return;
+        }
+
+        try {
+          const token = localStorage.getItem("token");
+
+          const response = await fetch(
+            `${API_BASE_URL}/tasks/delete-request/${taskId}`,
+            {
+              method: "DELETE",
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          const data = await response.json();
+
+          if (response.ok) {
+            anime({
+              targets: taskCard,
+              opacity: [1, 0],
+              translateX: [0, -100],
+              duration: 400,
+              easing: "easeInQuad",
+              complete: function () {
+                taskCard.remove();
+              },
+            });
+          } else {
+            alert(data.message || "Failed to delete task");
+          }
+        } catch (error) {
+          console.error("Error deleting task:", error);
+          alert("Network error. Cannot delete task.");
+        }
+      };
+
+      document.getElementById("logout-btn").addEventListener("click", () => {
+        localStorage.clear();
+        window.location.href = "index.html";
+      });
+
+      loadAvailableTasks();
+    </script>
+  </body>
+</html>

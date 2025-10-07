@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BrinX - Assigned Tasks</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body class="bg-dark min-h-screen">
+    <div id="star-field" class="star-field"></div>
+
+    <nav class="glass-card mx-4 my-4 sticky top-4 z-50">
+      <div class="container mx-auto px-6 py-4">
+        <div class="flex justify-between items-center">
+          <h1 class="text-3xl font-black gradient-text">
+            Brin<span id="logo-x">X</span>
+          </h1>
+          <div class="hidden md:flex items-center space-x-2">
+            <a href="dashboard.html" class="nav-link">Home</a>
+            <a href="post-request.html" class="nav-link">Post Request</a>
+            <a href="view-requests.html" class="nav-link">View Requests</a>
+            <a href="assigned-tasks.html" class="nav-link active"
+              >Assigned Tasks</a
+            >
+            <button
+              id="logout-btn"
+              class="bg-red-500 bg-opacity-20 border border-red-500 text-red-300 px-5 py-2 rounded-lg font-bold hover:bg-opacity-30"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container mx-auto px-6 py-10 relative z-10">
+      <div class="mb-10 text-center">
+        <h2 class="text-5xl font-black gradient-text mb-3">
+          My Assigned Tasks
+        </h2>
+        <p class="text-gray-400 text-lg">
+          Manage your active and completed tasks
+        </p>
+      </div>
+
+      <div class="mb-8 flex space-x-2 glass-card inline-flex p-2 mx-auto">
+        <button
+          id="tab-active"
+          class="px-8 py-3 font-bold text-white bg-purple-600 bg-opacity-50 rounded-lg"
+        >
+          Active Tasks
+        </button>
+        <button
+          id="tab-completed"
+          class="px-8 py-3 font-bold text-gray-400 hover:text-white rounded-lg"
+        >
+          Completed Tasks
+        </button>
+      </div>
+
+      <div id="active-content" class="tab-content">
+        <div id="active-tasks" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="col-span-full text-center py-16">
+            <div class="text-6xl mb-4">⏳</div>
+            <p class="text-gray-400 font-medium text-lg">Loading tasks...</p>
+          </div>
+        </div>
+      </div>
+
+      <div id="completed-content" class="tab-content hidden">
+        <div id="completed-tasks" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="col-span-full text-center py-16">
+            <div class="text-6xl mb-4">✅</div>
+            <p class="text-gray-400 font-medium text-lg">
+              No completed tasks yet
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="complete-modal"
+      class="hidden fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+    >
+      <div class="glass-card max-w-md w-full p-10">
+        <h3 class="text-3xl font-black text-white mb-4">Complete Task</h3>
+        <p class="text-gray-400 mb-8 text-lg">
+          Upload proof of completion (PDF or Image)
+        </p>
+        <form id="complete-form">
+          <div class="mb-6">
+            <input
+              type="file"
+              id="proof-file"
+              accept=".pdf,.jpg,.jpeg,.png"
+              class="input-field"
+              required
+            />
+            <p class="text-xs text-gray-500 mt-2 text-center">Max size: 10MB</p>
+          </div>
+          <div class="flex space-x-4">
+            <button type="submit" class="flex-1 btn-primary py-4">
+              Submit
+            </button>
+            <button
+              type="button"
+              id="cancel-complete"
+              class="flex-1 btn-secondary py-4"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div
+      id="reward-modal"
+      class="hidden fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+    >
+      <div class="glass-card max-w-md w-full p-10">
+        <div class="text-center mb-8">
+          <div class="text-6xl mb-4">💰</div>
+          <h3 class="text-3xl font-black text-white mb-2">Confirm Reward</h3>
+          <p class="text-gray-400 text-lg">
+            Have you received the reward for this task?
+          </p>
+        </div>
+        <div class="flex space-x-4">
+          <button id="reward-received" class="flex-1 btn-primary py-4">
+            Got Reward ✓
+          </button>
+          <button
+            id="reward-not-received"
+            class="flex-1 bg-red-500 bg-opacity-20 border border-red-500 text-red-300 py-4 rounded-lg font-bold hover:bg-opacity-30"
+          >
+            Not Yet ✗
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/stars.js"></script>
+    <script src="js/animations.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+
+    <script>
+      if (!localStorage.getItem("token")) window.location.href = "index.html";
+
+      let selectedTaskId = null;
+
+      document
+        .querySelectorAll("#tab-active, #tab-completed")
+        .forEach((btn) => {
+          btn.addEventListener("click", (e) => {
+            document
+              .querySelectorAll("#tab-active, #tab-completed")
+              .forEach((b) => {
+                b.classList.remove(
+                  "bg-purple-600",
+                  "bg-opacity-50",
+                  "text-white"
+                );
+                b.classList.add("text-gray-400");
+              });
+            e.target.classList.add(
+              "bg-purple-600",
+              "bg-opacity-50",
+              "text-white"
+            );
+            e.target.classList.remove("text-gray-400");
+
+            if (e.target.id === "tab-active") {
+              document
+                .getElementById("active-content")
+                .classList.remove("hidden");
+              document
+                .getElementById("completed-content")
+                .classList.add("hidden");
+            } else {
+              document.getElementById("active-content").classList.add("hidden");
+              document
+                .getElementById("completed-content")
+                .classList.remove("hidden");
+              loadCompletedTasks();
+            }
+          });
+        });
+
+      async function loadActiveTasks() {
+        try {
+          const data = await apiCall("/tasks/my-accepted-tasks", "GET");
+          const container = document.getElementById("active-tasks");
+          const activeTasks = data.tasks.filter((t) => t.status === "accepted");
+
+          if (activeTasks.length === 0) {
+            container.innerHTML = `
+                        <div class="col-span-full text-center py-16">
+                            <div class="text-6xl mb-4">📋</div>
+                            <p class="text-gray-400 font-medium text-lg">No active tasks</p>
+                        </div>
+                    `;
+            return;
+          }
+
+          container.innerHTML = activeTasks
+            .map((task) => {
+              const deadline = new Date(task.deadline);
+              const isOverdue = new Date() > deadline;
+
+              return `
+                        <div class="glass-card p-6">
+                            ${
+                              isOverdue
+                                ? '<div class="badge bg-red-500 bg-opacity-20 text-red-400 mb-3">⚠️ OVERDUE</div>'
+                                : ""
+                            }
+                            <h3 class="text-lg font-black text-white mb-4 leading-tight">${
+                              task.request
+                            }</h3>
+                            <div class="space-y-2 text-sm mb-4">
+                                <p class="text-gray-400">
+                                    <span class="font-bold text-gray-300">Posted by:</span> ${
+                                      task.posted_by_name
+                                    }
+                                </p>
+                                <p class="${
+                                  isOverdue
+                                    ? "text-red-400 font-bold"
+                                    : "text-gray-400"
+                                }">
+                                    <span class="font-bold text-gray-300">Deadline:</span> ${deadline.toLocaleString()}
+                                </p>
+                                <p class="text-gray-400">
+                                    <span class="font-bold text-gray-300">Reward:</span> <span class="text-green-400 font-black text-base">${
+                                      task.reward
+                                    }</span>
+                                </p>
+                            </div>
+                            <button onclick="openCompleteModal('${
+                              task._id
+                            }')" class="w-full btn-primary py-4 mt-2">
+                                Mark as Completed ✓
+                            </button>
+                        </div>
+                    `;
+            })
+            .join("");
+        } catch (error) {
+          console.error("Error:", error);
+        }
+      }
+
+      async function loadCompletedTasks() {
+        try {
+          const data = await apiCall("/tasks/my-accepted-tasks", "GET");
+          const container = document.getElementById("completed-tasks");
+          const completedTasks = data.tasks.filter(
+            (t) => t.status === "completed" || t.status === "verified"
+          );
+
+          if (completedTasks.length === 0) {
+            container.innerHTML = `
+                        <div class="col-span-full text-center py-16">
+                            <div class="text-6xl mb-4">✅</div>
+                            <p class="text-gray-400 font-medium text-lg">No completed tasks yet</p>
+                        </div>
+                    `;
+            return;
+          }
+
+          container.innerHTML = completedTasks
+            .map(
+              (task) => `
+                    <div class="glass-card p-6">
+                        <span class="badge badge-${
+                          task.status === "verified" ? "success" : "info"
+                        }">
+                            ${
+                              task.status === "verified"
+                                ? "✓ VERIFIED"
+                                : "⏳ PENDING REWARD"
+                            }
+                        </span>
+                        <h3 class="text-lg font-black text-white mb-3 mt-2">${
+                          task.request
+                        }</h3>
+                        <p class="text-sm text-gray-400 mb-2"><span class="font-bold">Reward:</span> <span class="text-green-400 font-bold">${
+                          task.reward
+                        }</span></p>
+                        ${
+                          task.status === "completed"
+                            ? `
+                            <button onclick="openRewardModal('${task._id}')" class="mt-4 w-full bg-orange-500 bg-opacity-20 border border-orange-500 text-orange-300 py-3 rounded-lg hover:bg-opacity-30 font-bold">
+                                Confirm Reward Status
+                            </button>
+                        `
+                            : '<p class="text-green-400 text-sm font-bold mt-4">✓ Reward confirmed</p>'
+                        }
+                    </div>
+                `
+            )
+            .join("");
+        } catch (error) {
+          console.error("Error:", error);
+        }
+      }
+
+      window.openCompleteModal = function (taskId) {
+        selectedTaskId = taskId;
+        document.getElementById("complete-modal").classList.remove("hidden");
+      };
+
+      window.openRewardModal = function (taskId) {
+        selectedTaskId = taskId;
+        document.getElementById("reward-modal").classList.remove("hidden");
+      };
+
+      document
+        .getElementById("complete-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const fileInput = document.getElementById("proof-file");
+
+          if (!fileInput.files || fileInput.files.length === 0) {
+            alert("Please select a file to upload");
+            return;
+          }
+
+          const formData = new FormData();
+          formData.append("file", fileInput.files[0]);
+
+          try {
+            const token = localStorage.getItem("token");
+
+            const response = await fetch(
+              `${API_BASE_URL}/tasks/complete-task/${selectedTaskId}`,
+              {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+                body: formData,
+              }
+            );
+
+            const data = await response.json();
+
+            if (response.ok) {
+              alert(
+                "Task completed successfully! +" +
+                  (data.pointsAdded || 0) +
+                  " points"
+              );
+              document.getElementById("complete-modal").classList.add("hidden");
+              document.getElementById("complete-form").reset();
+              loadActiveTasks();
+            } else {
+              alert(data.message || "Failed to complete task");
+            }
+          } catch (error) {
+            console.error("Error completing task:", error);
+            alert("Network error. Please try again.");
+          }
+        });
+
+      document
+        .getElementById("reward-received")
+        .addEventListener("click", async () => {
+          try {
+            await apiCall(`/tasks/reward-status/${selectedTaskId}`, "POST", {
+              status: "received",
+            });
+            alert("Thank you for confirming!");
+            document.getElementById("reward-modal").classList.add("hidden");
+            loadCompletedTasks();
+          } catch (error) {
+            alert("Error updating status");
+          }
+        });
+
+      document
+        .getElementById("reward-not-received")
+        .addEventListener("click", async () => {
+          try {
+            await apiCall(`/tasks/reward-status/${selectedTaskId}`, "POST", {
+              status: "not_received",
+            });
+            alert("Reminder sent to task creator");
+            document.getElementById("reward-modal").classList.add("hidden");
+          } catch (error) {
+            alert("Error sending reminder");
+          }
+        });
+
+      document
+        .getElementById("cancel-complete")
+        .addEventListener("click", () => {
+          document.getElementById("complete-modal").classList.add("hidden");
+        });
+
+      document.getElementById("logout-btn").addEventListener("click", () => {
+        localStorage.clear();
+        window.location.href = "index.html";
+      });
+
+      loadActiveTasks();
+    </script>
+  </body>
+</html>
