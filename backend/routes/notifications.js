@@ -26,6 +26,20 @@ router.get("/", authMiddleware, async (req, res) => {
   }
 });
 
+router.patch("/mark-all-read", authMiddleware, async (req, res) => {
+  try {
+    await Notification.updateMany(
+      { receiver: req.user.roll_number, read: false },
+      { read: true }
+    );
+
+    res.json({ message: "All notifications marked as read" });
+  } catch (error) {
+    console.error("Mark all as read error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 router.patch("/:id/read", authMiddleware, async (req, res) => {
   try {
     const notification = await Notification.findById(req.params.id);
@@ -44,20 +58,6 @@ router.patch("/:id/read", authMiddleware, async (req, res) => {
     res.json({ message: "Notification marked as read" });
   } catch (error) {
     console.error("Mark notification as read error:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-router.patch("/mark-all-read", authMiddleware, async (req, res) => {
-  try {
-    await Notification.updateMany(
-      { receiver: req.user.roll_number, read: false },
-      { read: true }
-    );
-
-    res.json({ message: "All notifications marked as read" });
-  } catch (error) {
-    console.error("Mark all as read error:", error);
     res.status(500).json({ message: "Server error" });
   }
 });

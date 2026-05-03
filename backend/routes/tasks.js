@@ -9,7 +9,7 @@ const authMiddleware = require("../middleware/auth");
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "backend/uploads/");
+    cb(null, path.join(__dirname, "../uploads/"));
   },
   filename: (req, file, cb) => {
     cb(null, Date.now() + "-" + file.originalname);
@@ -166,12 +166,6 @@ router.post("/accept-request/:id", authMiddleware, async (req, res) => {
       return res.status(400).json({ message: "Task is no longer available" });
     }
 
-    if (task.accepted_by !== null && task.accepted_by !== undefined) {
-      return res.status(400).json({
-        message: "This task has already been accepted by someone else",
-      });
-    }
-
     task.status = "accepted";
     task.accepted_by = roll_number;
     task.accepted_by_name = name;
@@ -255,7 +249,7 @@ router.post(
       task.completed_at = new Date();
       await task.save();
 
-      const completedOnTime = new Date() <= new Date(task.deadline);
+      const completedOnTime = task.completed_at <= new Date(task.deadline);
       let pointsAdded = 0;
 
       if (completedOnTime) {

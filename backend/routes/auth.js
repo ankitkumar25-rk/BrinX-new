@@ -10,12 +10,51 @@ const {
   sendPasswordResetEmail,
 } = require("../services/emailService");
 
+// Valid IITJ department codes
+const VALID_DEPT_CODES = [
+  "bb", // Bioscience & Bioengineering
+  "cs", // Computer Science & Engineering
+  "me", // Mechanical Engineering
+  "ee", // Electrical Engineering
+  "ce", // Civil Engineering
+  "ch", // Chemical Engineering
+  "ph", // Physics
+  "ma", // Mathematics
+  "hs", // Humanities & Social Sciences
+  "mt", // Materials & Metallurgical Engineering
+  "cm", // Computing & Mathematics
+  "ec", // Electronics & Communication
+];
+
+// Roll number regex: b + 2-digit year + 2-letter dept + 4-digit number  (e.g. b25bb1002)
+const ROLL_NUMBER_REGEX = /^[bB]\d{2}[a-zA-Z]{2}\d{4}$/;
+
+function validateIITJRollNumber(roll) {
+  const r = roll.toLowerCase();
+  if (!ROLL_NUMBER_REGEX.test(r)) return false;
+  const dept = r.slice(3, 5);
+  return VALID_DEPT_CODES.includes(dept);
+}
+
 router.post(
   "/signup",
   [
     body("name").notEmpty().withMessage("Name is required"),
-    body("email").isEmail().withMessage("Valid email is required"),
-    body("roll_number").notEmpty().withMessage("Roll number is required"),
+    body("email")
+      .isEmail().withMessage("Valid email is required")
+      .custom((email) => {
+        if (!email.endsWith("@iitj.ac.in")) {
+          throw new Error("Email must be your IITJ email (rollnumber@iitj.ac.in)");
+        }
+        return true;
+      }),
+    body("roll_number")
+      .notEmpty().withMessage("Roll number is required")
+      .custom((roll) => {
+        if (roll.length !== 9) throw new Error("Roll number must be exactly 9 characters");
+        if (!validateIITJRollNumber(roll)) throw new Error("Invalid roll number format. Use: b25cs1002 (b + year + dept + 4 digits)");
+        return true;
+      }),
     body("password")
       .isLength({ min: 6 })
       .withMessage("Password must be at least 6 characters"),
@@ -24,10 +63,16 @@ router.post(
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
+        return res.status(400).json({ message: errors.array()[0].msg });
       }
 
       const { name, email, roll_number, password } = req.body;
+
+      // Ensure email prefix matches roll number
+      const emailRoll = email.split("@")[0].toLowerCase();
+      if (emailRoll !== roll_number.toLowerCase()) {
+        return res.status(400).json({ message: "Email must match your roll number (rollnumber@iitj.ac.in)" });
+      }
 
       const existingUser = await User.findOne({
         $or: [{ email }, { roll_number }],
@@ -87,26 +132,32 @@ router.post(
 router.post(
   "/login",
   [
-    body("email").isEmail().withMessage("Valid email is required"),
+    body("identifier").notEmpty().withMessage("Email or roll number is required"),
     body("password").notEmpty().withMessage("Password is required"),
   ],
   async (req, res) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
+        return res.status(400).json({ message: errors.array()[0].msg });
       }
 
-      const { email, password } = req.body;
+      const { identifier, password } = req.body;
 
-      const user = await User.findOne({ email });
+      // Detect if it's an email or a roll number
+      const isEmail = identifier.includes("@");
+      const query = isEmail
+        ? { email: identifier.toLowerCase().trim() }
+        : { roll_number: identifier.toLowerCase().trim() };
+
+      const user = await User.findOne(query);
       if (!user) {
-        return res.status(400).json({ message: "Invalid Email or Password" });
+        return res.status(400).json({ message: "Invalid credentials. Check your email/roll number and password." });
       }
 
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
-        return res.status(400).json({ message: "Invalid Email or Password" });
+        return res.status(400).json({ message: "Invalid credentials. Check your email/roll number and password." });
       }
 
       const token = jwt.sign(
@@ -224,6 +275,11 @@ router.post("/reset-password", async (req, res) => {
       return res
         .status(400)
         .json({ message: "Reset link expired. Please request a new one." });
+    }
+    if (error.name === "JsonWebTokenError") {
+      return res
+        .status(400)
+        .json({ message: "Invalid reset link. Please request a new one." });
     }
     console.error("Reset password error:", error);
     res.status(500).json({ message: "Server error" });

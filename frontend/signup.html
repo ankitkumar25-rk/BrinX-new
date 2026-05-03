@@ -1,188 +1,277 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>BrinX - Sign Up</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
-    <link rel="stylesheet" href="css/styles.css" />
-  </head>
-  <body
-    class="bg-dark min-h-screen flex items-center justify-center py-12 relative overflow-hidden"
-  >
-    <div id="star-field" class="star-field"></div>
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet"/><title>BrinX — Sign Up</title>
+  <link rel="stylesheet" href="css/styles.css"/>
+  <style>
+    body{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+    .auth-wrap{width:100%;max-width:440px;z-index:1;position:relative}
 
-    <div class="container mx-auto px-4 relative z-10">
-      <div class="max-w-md mx-auto">
-        <div class="text-center mb-12">
-          <h1 class="text-7xl font-black gradient-text mb-4">
-            Brin<span id="logo-x">X</span>
-          </h1>
-          <p class="text-gray-300 text-lg">
-            "Get your task done — smarter, faster, together."
-          </p>
-        </div>
+    /* Field-level validation states */
+    .input-field.valid   { border-color: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,.15); }
+    .input-field.invalid { border-color: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,.15); }
 
-        <div class="glass-card p-10">
-          <h2 class="text-3xl font-bold text-white mb-8 text-center">
-            Create Account
-          </h2>
+    .field-hint {
+      font-size: 11px; margin-top: 5px; display: flex; align-items: center; gap: 5px;
+      transition: color .2s;
+    }
+    .field-hint.ok  { color: #34d399; }
+    .field-hint.err { color: #f87171; }
+    .field-hint.dim { color: var(--tx3); }
 
-          <div
-            id="error-message"
-            class="hidden bg-red-500 bg-opacity-20 border border-red-500 text-red-300 px-5 py-4 rounded-lg mb-6"
-          >
-            <span id="error-text"></span>
-          </div>
+    /* Dept badge chips shown under roll number */
+    .dept-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+    .dept-chip  {
+      font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 6px;
+      background: rgba(124,58,237,.12); border: 1px solid rgba(124,58,237,.2);
+      color: var(--v-l); letter-spacing: .03em; text-transform: uppercase;
+      transition: background .2s, border-color .2s;
+    }
+    .dept-chip.match { background: rgba(16,185,129,.15); border-color: rgba(16,185,129,.3); color: #34d399; }
+  </style>
+</head>
+<body>
+  <div class="aurora"><div class="ab ab1"></div><div class="ab ab2"></div><div class="ab ab3"></div><div class="ab ab4"></div></div>
 
-          <div
-            id="success-message"
-            class="hidden bg-green-500 bg-opacity-20 border border-green-500 text-green-300 px-5 py-4 rounded-lg mb-6"
-          >
-            <span id="success-text"></span>
-          </div>
-
-          <form id="signup-form" class="space-y-5">
-            <div>
-              <label class="block text-gray-300 text-sm font-semibold mb-2">
-                Full Name
-              </label>
-              <input
-                type="text"
-                id="name"
-                class="input-field"
-                placeholder="John Doe"
-                required
-              />
-            </div>
-
-            <div>
-              <label class="block text-gray-300 text-sm font-semibold mb-2">
-                Email Address
-              </label>
-              <input
-                type="email"
-                id="email"
-                class="input-field"
-                placeholder="your.email@college.edu"
-                required
-              />
-            </div>
-
-            <div>
-              <label class="block text-gray-300 text-sm font-semibold mb-2">
-                Roll Number
-              </label>
-              <input
-                type="text"
-                id="roll_number"
-                class="input-field"
-                placeholder="CS2021001"
-                required
-              />
-              <p class="text-xs text-gray-500 mt-2">
-                This will be your unique identifier
-              </p>
-            </div>
-
-            <div>
-              <label class="block text-gray-300 text-sm font-semibold mb-2">
-                Password
-              </label>
-              <input
-                type="password"
-                id="password"
-                class="input-field"
-                placeholder="Minimum 6 characters"
-                required
-                minlength="6"
-              />
-            </div>
-
-            <button type="submit" class="btn-primary w-full text-lg mt-6">
-              Create Account
-            </button>
-          </form>
-
-          <div class="mt-8 text-center">
-            <p class="text-gray-400">
-              Already have an account?
-              <a
-                href="index.html"
-                class="text-purple-400 font-bold hover:text-purple-300"
-                >Login</a
-              >
-            </p>
-          </div>
-        </div>
-
-        <div class="text-center mt-8 text-gray-500 text-sm">
-          <p>Made with ❤️ for college students</p>
-        </div>
+  <div class="auth-wrap">
+    <div style="text-align:center;margin-bottom:28px">
+      <div style="display:inline-flex;align-items:center;justify-content:center;width:50px;height:50px;border-radius:16px;background:rgba(124,58,237,.2);border:1px solid rgba(124,58,237,.4);margin-bottom:14px;box-shadow:0 0 28px rgba(124,58,237,.3)">
+        <svg width="22" height="22" fill="none" stroke="#a78bfa" stroke-width="2.5" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
       </div>
+      <h1 class="logo-text" style="font-size:46px;display:block"><span class="logo-brin">Brin</span><span id="logo-x">X</span></h1>
+      <p style="color:var(--tx2);margin-top:8px;font-size:14px">IIT Jodhpur Task Exchange Platform</p>
     </div>
 
-    <script src="js/stars.js"></script>
-    <script src="js/animations.js"></script>
-    <script src="js/api.js"></script>
-    <script>
-      document
-        .getElementById("signup-form")
-        .addEventListener("submit", async (e) => {
-          e.preventDefault();
+    <div class="glass-card" style="padding:36px">
+      <h2 style="font-size:21px;font-weight:700;color:var(--tx);margin-bottom:4px">Create account</h2>
+      <p style="color:var(--tx2);font-size:13px;margin-bottom:22px">Use your IITJ credentials to register</p>
 
-          const formData = {
-            name: document.getElementById("name").value,
-            email: document.getElementById("email").value,
-            roll_number: document.getElementById("roll_number").value,
-            password: document.getElementById("password").value,
-          };
+      <div id="error-message" class="alert alert-error hidden" style="margin-bottom:16px">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span id="error-text"></span>
+      </div>
+      <div id="success-message" class="alert alert-success hidden" style="margin-bottom:16px">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        <span id="success-text"></span>
+      </div>
 
-          try {
-            const response = await fetch(API_BASE_URL + "/auth/signup", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(formData),
-            });
+      <form id="signup-form" style="display:flex;flex-direction:column;gap:16px">
 
-            const data = await response.json();
+        <!-- Name -->
+        <div>
+          <label class="form-label" for="name">Full Name</label>
+          <input type="text" id="name" class="input-field" placeholder="John Doe" required/>
+        </div>
 
-            if (response.ok) {
-              localStorage.setItem("token", data.token);
-              localStorage.setItem("user", JSON.stringify(data.user));
+        <!-- Roll Number -->
+        <div>
+          <label class="form-label" for="roll_number">Roll Number</label>
+          <input type="text" id="roll_number" class="input-field" placeholder="b25cs1002" maxlength="9" required autocomplete="off" style="text-transform:lowercase"/>
+          <div id="roll-hint" class="field-hint dim">
+            <svg id="roll-icon" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span id="roll-hint-text">Format: b + year + dept code + 4 digits &nbsp;(e.g. b25cs1002)</span>
+          </div>
+          <div class="dept-chips" id="dept-chips">
+            <span class="dept-chip" data-dept="bb">BB</span>
+            <span class="dept-chip" data-dept="cs">CS</span>
+            <span class="dept-chip" data-dept="me">ME</span>
+            <span class="dept-chip" data-dept="ee">EE</span>
+            <span class="dept-chip" data-dept="ce">CE</span>
+            <span class="dept-chip" data-dept="ch">CH</span>
+            <span class="dept-chip" data-dept="ph">PH</span>
+            <span class="dept-chip" data-dept="ma">MA</span>
+            <span class="dept-chip" data-dept="hs">HS</span>
+            <span class="dept-chip" data-dept="mt">MT</span>
+            <span class="dept-chip" data-dept="cm">CM</span>
+            <span class="dept-chip" data-dept="ec">EC</span>
+          </div>
+        </div>
 
-              showSuccess("Account created successfully! Redirecting...");
+        <!-- Email -->
+        <div>
+          <label class="form-label" for="email">IITJ Email</label>
+          <input type="email" id="email" class="input-field" placeholder="b25cs1002@iitj.ac.in" required autocomplete="off"/>
+          <div id="email-hint" class="field-hint dim">
+            <svg id="email-icon" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span id="email-hint-text">Must be rollnumber@iitj.ac.in</span>
+          </div>
+        </div>
 
-              setTimeout(() => {
-                window.location.href = "dashboard.html";
-              }, 1500);
-            } else {
-              showError(data.message || "Signup failed");
-            }
-          } catch (error) {
-            showError("Network error. Please try again.");
-            console.error("Signup error:", error);
-          }
+        <!-- Password -->
+        <div>
+          <label class="form-label" for="password">Password</label>
+          <input type="password" id="password" class="input-field" placeholder="Minimum 6 characters" required minlength="6"/>
+        </div>
+
+        <button type="submit" id="signup-btn" class="btn-primary" style="padding:13px;font-size:15px;margin-top:4px" disabled>
+          Create Account
+        </button>
+      </form>
+
+      <div class="glow-line" style="margin:20px 0 16px"></div>
+      <p style="text-align:center;color:var(--tx2);font-size:14px">Already have an account? <a href="index.html" style="color:var(--v-xl);font-weight:700;text-decoration:none;margin-left:4px">Sign in</a></p>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/aurora.js"></script>
+  <script>
+    // ── Validation config ──────────────────────────────────────────────────────
+    const VALID_DEPTS = ["bb","cs","me","ee","ce","ch","ph","ma","hs","mt","cm","ec"];
+    const ROLL_REGEX  = /^[b]\d{2}[a-z]{2}\d{4}$/;
+
+    const DEPT_NAMES = {
+      bb:"Bioscience & Bioengineering", cs:"Computer Science & Engg",
+      me:"Mechanical Engineering",      ee:"Electrical Engineering",
+      ce:"Civil Engineering",           ch:"Chemical Engineering",
+      ph:"Physics",                     ma:"Mathematics",
+      hs:"Humanities & Social Sciences",mt:"Materials & Metallurgy",
+      cm:"Computing & Mathematics",      ec:"Electronics & Comm"
+    };
+
+    // ── Element refs ───────────────────────────────────────────────────────────
+    const rollInput   = document.getElementById("roll_number");
+    const emailInput  = document.getElementById("email");
+    const submitBtn   = document.getElementById("signup-btn");
+    const rollHint    = document.getElementById("roll-hint");
+    const rollHintTxt = document.getElementById("roll-hint-text");
+    const rollIcon    = document.getElementById("roll-icon");
+    const emailHint   = document.getElementById("email-hint");
+    const emailHintTxt= document.getElementById("email-hint-text");
+    const emailIcon   = document.getElementById("email-icon");
+    const deptChips   = document.querySelectorAll(".dept-chip");
+
+    let rollValid = false, emailValid = false;
+
+    function setHint(hintEl, iconEl, textEl, state, message) {
+      hintEl.className  = "field-hint " + (state === "ok" ? "ok" : state === "err" ? "err" : "dim");
+      textEl.textContent = message;
+      iconEl.innerHTML  = state === "ok"
+        ? '<polyline points="20 6 9 17 4 12"/>'
+        : '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>';
+    }
+
+    function highlightChip(deptCode) {
+      deptChips.forEach(c => {
+        c.classList.toggle("match", c.dataset.dept === deptCode);
+      });
+    }
+
+    function validateRoll(raw) {
+      const v = raw.toLowerCase().trim();
+      rollInput.value = v; // enforce lowercase
+
+      if (!v) {
+        rollInput.classList.remove("valid","invalid");
+        setHint(rollHint, rollIcon, rollHintTxt, "dim", "Format: b + year + dept code + 4 digits  (e.g. b25cs1002)");
+        highlightChip(null); rollValid = false; return;
+      }
+      if (v.length < 9) {
+        rollInput.classList.replace("valid","invalid") || rollInput.classList.add("invalid");
+        setHint(rollHint, rollIcon, rollHintTxt, "err", `${v.length}/9 characters — needs to be exactly 9`);
+        highlightChip(null); rollValid = false; return;
+      }
+      if (!ROLL_REGEX.test(v)) {
+        rollInput.classList.replace("valid","invalid") || rollInput.classList.add("invalid");
+        setHint(rollHint, rollIcon, rollHintTxt, "err", "Must start with 'b', then 2-digit year, dept code, 4 digits");
+        highlightChip(null); rollValid = false; return;
+      }
+      const dept = v.slice(3, 5);
+      if (!VALID_DEPTS.includes(dept)) {
+        rollInput.classList.replace("valid","invalid") || rollInput.classList.add("invalid");
+        setHint(rollHint, rollIcon, rollHintTxt, "err", `Unknown dept code "${dept.toUpperCase()}" — pick from the list below`);
+        highlightChip(null); rollValid = false; return;
+      }
+      // All good
+      rollInput.classList.remove("invalid"); rollInput.classList.add("valid");
+      setHint(rollHint, rollIcon, rollHintTxt, "ok", `Valid! Dept: ${DEPT_NAMES[dept]}`);
+      highlightChip(dept);
+      rollValid = true;
+
+      // Auto-fill email
+      if (!emailInput.value || emailInput.value.endsWith("@iitj.ac.in")) {
+        emailInput.value = v + "@iitj.ac.in";
+        validateEmail(emailInput.value, v);
+      }
+    }
+
+    function validateEmail(raw, currentRoll) {
+      const v = raw.toLowerCase().trim();
+      const roll = (currentRoll || rollInput.value).toLowerCase().trim();
+
+      if (!v) {
+        emailInput.classList.remove("valid","invalid");
+        setHint(emailHint, emailIcon, emailHintTxt, "dim", "Must be rollnumber@iitj.ac.in");
+        emailValid = false; return;
+      }
+      if (!v.endsWith("@iitj.ac.in")) {
+        emailInput.classList.replace("valid","invalid") || emailInput.classList.add("invalid");
+        setHint(emailHint, emailIcon, emailHintTxt, "err", "Email must end with @iitj.ac.in");
+        emailValid = false; return;
+      }
+      const prefix = v.split("@")[0];
+      if (roll && prefix !== roll) {
+        emailInput.classList.replace("valid","invalid") || emailInput.classList.add("invalid");
+        setHint(emailHint, emailIcon, emailHintTxt, "err", `Email prefix must match roll number (${roll}@iitj.ac.in)`);
+        emailValid = false; return;
+      }
+      emailInput.classList.remove("invalid"); emailInput.classList.add("valid");
+      setHint(emailHint, emailIcon, emailHintTxt, "ok", "Valid IITJ email");
+      emailValid = true;
+    }
+
+    function updateSubmitBtn() {
+      submitBtn.disabled = !(rollValid && emailValid);
+    }
+
+    rollInput.addEventListener("input",  () => { validateRoll(rollInput.value); updateSubmitBtn(); });
+    emailInput.addEventListener("input", () => { validateEmail(emailInput.value); updateSubmitBtn(); });
+
+    // ── Form submission ────────────────────────────────────────────────────────
+    document.getElementById("signup-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!rollValid || !emailValid) return;
+
+      const btn = document.getElementById("signup-btn");
+      btn.disabled = true; btn.textContent = "Creating account...";
+
+      try {
+        const res = await fetch(API_BASE_URL + "/auth/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name:        document.getElementById("name").value.trim(),
+            email:       emailInput.value.trim(),
+            roll_number: rollInput.value.trim(),
+            password:    document.getElementById("password").value,
+          }),
         });
-
-      function showError(message) {
-        const errorDiv = document.getElementById("error-message");
-        const errorText = document.getElementById("error-text");
-        errorText.textContent = message;
-        errorDiv.classList.remove("hidden");
-        document.getElementById("success-message").classList.add("hidden");
+        const data = await res.json();
+        if (res.ok) {
+          localStorage.setItem("token", data.token);
+          localStorage.setItem("user",  JSON.stringify(data.user));
+          document.getElementById("success-text").textContent = "Account created! Redirecting...";
+          document.getElementById("success-message").classList.remove("hidden");
+          document.getElementById("error-message").classList.add("hidden");
+          setTimeout(() => { window.location.href = "dashboard.html"; }, 1500);
+        } else {
+          showError(data.message || "Signup failed");
+          btn.disabled = false; btn.textContent = "Create Account";
+        }
+      } catch (err) {
+        showError("Network error. Please try again.");
+        btn.disabled = false; btn.textContent = "Create Account";
       }
+    });
 
-      function showSuccess(message) {
-        const successDiv = document.getElementById("success-message");
-        const successText = document.getElementById("success-text");
-        successText.textContent = message;
-        successDiv.classList.remove("hidden");
-        document.getElementById("error-message").classList.add("hidden");
-      }
-    </script>
-  </body>
+    function showError(msg) {
+      document.getElementById("error-text").textContent = msg;
+      document.getElementById("error-message").classList.remove("hidden");
+      document.getElementById("success-message").classList.add("hidden");
+    }
+  </script>
+</body>
 </html>

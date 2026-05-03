@@ -1,166 +1,117 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>BrinX - Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
-    <link rel="stylesheet" href="css/styles.css" />
-  </head>
-  <body class="bg-dark min-h-screen">
-    <div id="star-field" class="star-field"></div>
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BrinX — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+  <link rel="stylesheet" href="css/styles.css"/>
+</head>
+<body>
+  <div class="aurora"><div class="ab ab1"></div><div class="ab ab2"></div><div class="ab ab3"></div><div class="ab ab4"></div></div>
 
-    <nav class="glass-card mx-4 my-4 sticky top-4 z-50">
-      <div class="container mx-auto px-6 py-4">
-        <div class="flex justify-between items-center">
-          <h1 class="text-3xl font-black gradient-text">
-            Brin<span id="logo-x">X</span>
-          </h1>
-
-          <div class="hidden md:flex items-center space-x-2">
-            <a href="dashboard.html" class="nav-link active">Home</a>
-            <a href="post-request.html" class="nav-link">Post Request</a>
-            <a href="view-requests.html" class="nav-link">View Requests</a>
-            <a href="assigned-tasks.html" class="nav-link">Assigned Tasks</a>
-
-            <button
-              id="notification-btn"
-              class="relative p-3 rounded-lg hover:bg-white hover:bg-opacity-10"
-            >
-              <svg
-                class="w-6 h-6 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                ></path>
-              </svg>
-              <span id="notification-badge" class="hidden notification-badge"
-                >0</span
-              >
-            </button>
-
-            <div
-              class="flex items-center space-x-4 border-l border-white border-opacity-20 pl-4 ml-4"
-            >
-              <div class="text-right">
-                <p class="text-sm font-bold text-white" id="user-name">User</p>
-                <p class="text-xs text-purple-400 font-bold">
-                  ⭐ <span id="user-points">0</span> points
-                </p>
-              </div>
-              <button
-                id="logout-btn"
-                class="bg-red-500 bg-opacity-20 border border-red-500 text-red-300 px-5 py-2 rounded-lg font-bold hover:bg-opacity-30"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
+  <!-- Navbar -->
+  <nav class="navbar z1">
+    <div class="navbar-inner">
+      <a href="dashboard.html" class="logo-text" style="font-size:26px;text-decoration:none"><span class="logo-brin">Brin</span><span id="logo-x">X</span></a>
+      <div class="nav-links">
+        <a href="dashboard.html" class="nav-link active">Home</a>
+        <a href="post-request.html" class="nav-link">Post Request</a>
+        <a href="view-requests.html" class="nav-link">View Requests</a>
+        <a href="assigned-tasks.html" class="nav-link">My Tasks</a>
       </div>
-    </nav>
-
-    <div class="container mx-auto px-6 py-10 relative z-10">
-      <div class="mb-12 text-center">
-        <h2 class="text-5xl font-black text-white mb-3">
-          Welcome, <span id="welcome-name" class="gradient-text">User</span>!
-          <span class="rocket">🚀</span>
-        </h2>
-        <p class="text-gray-400 text-lg">
-          Here's what's happening in your task exchange community
-        </p>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-        <div class="glass-card p-6">
-          <div class="flex items-center justify-between mb-4">
-            <div class="text-5xl">⭐</div>
-          </div>
-          <h3 class="text-4xl font-black text-white mb-1" id="total-points">
-            0
-          </h3>
-          <p class="text-gray-400 text-sm font-medium">Total Points</p>
-        </div>
-
-        <div class="glass-card p-6">
-          <div class="flex items-center justify-between mb-4">
-            <div class="text-5xl">📝</div>
-          </div>
-          <h3 class="text-4xl font-black text-white mb-1" id="tasks-posted">
-            0
-          </h3>
-          <p class="text-gray-400 text-sm font-medium">Tasks Posted</p>
-        </div>
-
-        <div class="glass-card p-6">
-          <div class="flex items-center justify-between mb-4">
-            <div class="text-5xl">✅</div>
-          </div>
-          <h3 class="text-4xl font-black text-white mb-1" id="tasks-accepted">
-            0
-          </h3>
-          <p class="text-gray-400 text-sm font-medium">Tasks Accepted</p>
-        </div>
-
-        <div class="glass-card p-6">
-          <div class="flex items-center justify-between mb-4">
-            <div class="text-5xl">🎉</div>
-          </div>
-          <h3 class="text-4xl font-black text-white mb-1" id="tasks-completed">
-            0
-          </h3>
-          <p class="text-gray-400 text-sm font-medium">Tasks Completed</p>
-        </div>
-      </div>
-
-      <div class="glass-card p-8 mb-10">
-        <h3 class="text-2xl font-black text-white mb-8 flex items-center">
-          <span class="gradient-text">Quick Actions</span>
-          <span class="ml-3 text-2xl">⚡</span>
-        </h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <a
-            href="post-request.html"
-            class="glass-card p-8 text-center hover:scale-105 transition-all"
-          >
-            <div class="text-6xl mb-4">📢</div>
-            <h4 class="font-black text-xl text-white mb-2">Post a Task</h4>
-            <p class="text-sm text-gray-400">Need help? Post your task now</p>
-          </a>
-
-          <a
-            href="view-requests.html"
-            class="glass-card p-8 text-center hover:scale-105 transition-all"
-          >
-            <div class="text-6xl mb-4">🔍</div>
-            <h4 class="font-black text-xl text-white mb-2">Browse Tasks</h4>
-            <p class="text-sm text-gray-400">Find tasks to complete and earn</p>
-          </a>
-
-          <a
-            href="assigned-tasks.html"
-            class="glass-card p-8 text-center hover:scale-105 transition-all"
-          >
-            <div class="text-6xl mb-4">📋</div>
-            <h4 class="font-black text-xl text-white mb-2">My Tasks</h4>
-            <p class="text-sm text-gray-400">
-              View your active and completed tasks
-            </p>
-          </a>
-        </div>
+      <div class="nav-right">
+        <button id="notification-btn" class="notif-btn">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+          <span id="notification-badge" class="hidden notification-badge">0</span>
+        </button>
+        <div class="nav-divider"></div>
+        <div><div class="nav-user-name" id="user-name">User</div><div class="nav-user-points"><span id="user-points">0</span> pts</div></div>
+        <button id="logout-btn" class="btn-danger" style="padding:7px 14px;font-size:12px">Log out</button>
       </div>
     </div>
+  </nav>
 
-    <script src="js/stars.js"></script>
-    <script src="js/animations.js"></script>
-    <script src="js/api.js"></script>
-    <script src="js/dashboard.js"></script>
-  </body>
+  <div class="z1" style="max-width:1200px;margin:0 auto;padding:36px 24px">
+
+    <!-- Welcome -->
+    <div style="margin-bottom:32px">
+      <p style="font-size:13px;color:var(--v-l);font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">Dashboard</p>
+      <h2 style="font-size:clamp(26px,3.5vw,38px);font-weight:800;font-family:'Syne',sans-serif;color:var(--tx)">
+        Hey, <span class="gradient-text" id="welcome-name">there</span>
+      </h2>
+      <p style="color:var(--tx2);font-size:15px;margin-top:4px">Here's what's happening in your task exchange community</p>
+    </div>
+
+    <!-- BENTO GRID — Stats -->
+    <div class="bento" style="margin-bottom:20px">
+
+      <!-- Total Points — 2-wide -->
+      <div class="neu-tile b-pts" style="padding:28px">
+        <div class="neu-icon v">
+          <svg width="20" height="20" fill="none" stroke="#a78bfa" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        <div class="neu-val" id="total-points">0</div>
+        <div class="neu-label">Total Points Earned</div>
+        <div style="position:absolute;top:20px;right:20px"><span class="badge badge-purple">XP</span></div>
+      </div>
+
+      <!-- Tasks Posted -->
+      <div class="neu-tile b-po" style="padding:24px">
+        <div class="neu-icon c">
+          <svg width="18" height="18" fill="none" stroke="#67e8f9" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+        </div>
+        <div class="neu-val" id="tasks-posted">0</div>
+        <div class="neu-label">Tasks Posted</div>
+      </div>
+
+      <!-- Tasks Accepted -->
+      <div class="neu-tile b-ac" style="padding:24px">
+        <div class="neu-icon g">
+          <svg width="18" height="18" fill="none" stroke="#34d399" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        </div>
+        <div class="neu-val" id="tasks-accepted">0</div>
+        <div class="neu-label">Tasks Accepted</div>
+      </div>
+
+      <!-- Completed -->
+      <div class="neu-tile b-co" style="padding:24px">
+        <div class="neu-icon a">
+          <svg width="18" height="18" fill="none" stroke="#fbbf24" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="neu-val" id="tasks-completed">0</div>
+        <div class="neu-label">Completed</div>
+      </div>
+
+      <!-- Quick Actions — 3-wide -->
+      <div class="glass-card b-actions" style="padding:28px">
+        <p style="font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.09em;margin-bottom:18px">Quick Actions</p>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+          <a href="post-request.html" class="action-card">
+            <div class="action-icon v"><svg width="22" height="22" fill="none" stroke="#a78bfa" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+            <h4 style="font-size:14px;font-weight:700;color:var(--tx);margin-bottom:4px">Post a Task</h4>
+            <p style="font-size:12px;color:var(--tx2)">Need help? Post your task now</p>
+          </a>
+          <a href="view-requests.html" class="action-card">
+            <div class="action-icon c"><svg width="22" height="22" fill="none" stroke="#67e8f9" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+            <h4 style="font-size:14px;font-weight:700;color:var(--tx);margin-bottom:4px">Browse Tasks</h4>
+            <p style="font-size:12px;color:var(--tx2)">Find tasks to complete and earn</p>
+          </a>
+          <a href="assigned-tasks.html" class="action-card">
+            <div class="action-icon g"><svg width="22" height="22" fill="none" stroke="#34d399" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+            <h4 style="font-size:14px;font-weight:700;color:var(--tx);margin-bottom:4px">My Tasks</h4>
+            <p style="font-size:12px;color:var(--tx2)">View active and completed tasks</p>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/aurora.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
 </html>

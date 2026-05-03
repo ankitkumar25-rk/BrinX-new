@@ -4,6 +4,11 @@ if (!localStorage.getItem("token")) {
 
 const user = JSON.parse(localStorage.getItem("user"));
 
+if (!user) {
+  localStorage.clear();
+  window.location.href = "index.html";
+}
+
 document.getElementById("user-name").textContent = user.name;
 document.getElementById("user-points").textContent = user.points;
 document.getElementById("welcome-name").textContent = user.name;

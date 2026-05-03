@@ -1,0 +1,67 @@
+# ─────────────────────────────────────────────
+#  BrinX — .gitignore
+# ─────────────────────────────────────────────
+
+# ── Dependencies ──────────────────────────────
+node_modules/
+.npm
+package-lock.json
+
+# ── Environment Variables ─────────────────────
+# Never commit secrets / API keys
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+
+# ── Uploaded Files ────────────────────────────
+# Multer upload directory
+backend/uploads/
+uploads/
+
+# ── Logs ──────────────────────────────────────
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pids/
+*.pid
+*.seed
+
+# ── OS Generated ──────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+# ── IDE & Editor ──────────────────────────────
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.swp
+*.swo
+
+# ── Build Output ──────────────────────────────
+dist/
+build/
+.cache/
+.parcel-cache/
+
+# ── Testing ───────────────────────────────────
+coverage/
+.nyc_output/
+
+# ── Misc ──────────────────────────────────────
+*.bak
+*.tmp
+*.temp

@@ -1,384 +1,184 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>BrinX - View Requests</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
-    <link rel="stylesheet" href="css/styles.css" />
-  </head>
-  <body class="bg-dark min-h-screen">
-    <div id="star-field" class="star-field"></div>
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet"/><title>BrinX — View Requests</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+  <link rel="stylesheet" href="css/styles.css"/>
+</head>
+<body>
+  <div class="aurora"><div class="ab ab1"></div><div class="ab ab2"></div><div class="ab ab3"></div><div class="ab ab4"></div></div>
 
-    <nav class="glass-card mx-4 my-4 sticky top-4 z-50">
-      <div class="container mx-auto px-6 py-4">
-        <div class="flex justify-between items-center">
-          <h1 class="text-3xl font-black gradient-text">
-            Brin<span id="logo-x">X</span>
-          </h1>
-          <div class="hidden md:flex items-center space-x-2">
-            <a href="dashboard.html" class="nav-link">Home</a>
-            <a href="post-request.html" class="nav-link">Post Request</a>
-            <a href="view-requests.html" class="nav-link active"
-              >View Requests</a
-            >
-            <a href="assigned-tasks.html" class="nav-link">Assigned Tasks</a>
-            <button
-              id="logout-btn"
-              class="bg-red-500 bg-opacity-20 border border-red-500 text-red-300 px-5 py-2 rounded-lg font-bold hover:bg-opacity-30"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
+  <nav class="navbar z1">
+    <div class="navbar-inner">
+      <a href="dashboard.html" class="logo-text" style="font-size:26px;text-decoration:none"><span class="logo-brin">Brin</span><span id="logo-x">X</span></a>
+      <div class="nav-links">
+        <a href="dashboard.html" class="nav-link">Home</a>
+        <a href="post-request.html" class="nav-link">Post Request</a>
+        <a href="view-requests.html" class="nav-link active">View Requests</a>
+        <a href="assigned-tasks.html" class="nav-link">My Tasks</a>
       </div>
-    </nav>
-
-    <div class="container mx-auto px-6 py-10 relative z-10">
-      <div class="mb-10 text-center">
-        <h2 class="text-5xl font-black gradient-text mb-3">Available Tasks</h2>
-        <p class="text-gray-400 text-lg">
-          Browse and accept tasks from your peers
-        </p>
+      <div class="nav-right">
+        <button id="logout-btn" class="btn-danger" style="padding:7px 14px;font-size:12px">Log out</button>
       </div>
+    </div>
+  </nav>
 
-      <div class="mb-8 flex space-x-2 glass-card inline-flex p-2 mx-auto">
-        <button
-          id="tab-available"
-          class="px-8 py-3 font-bold text-white bg-purple-600 bg-opacity-50 rounded-lg"
-        >
-          Accept a Request
-        </button>
-        <button
-          id="tab-accepted"
-          class="px-8 py-3 font-bold text-gray-400 hover:text-white rounded-lg"
-        >
-          Accepted Requests
-        </button>
-      </div>
+  <div class="z1" style="max-width:1200px;margin:0 auto;padding:36px 24px">
 
-      <div id="available-content" class="tab-content">
-        <div
-          id="available-tasks"
-          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-        >
-          <div class="col-span-full text-center py-16">
-            <div class="text-6xl mb-4">⏳</div>
-            <p class="text-gray-400 font-medium text-lg">Loading tasks...</p>
-          </div>
+    <!-- Page Header — matches dashboard -->
+    <div style="margin-bottom:32px">
+      <p style="font-size:13px;color:var(--v-l);font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">Browse</p>
+      <h2 style="font-size:clamp(26px,3.5vw,38px);font-weight:800;font-family:'Syne',sans-serif;color:var(--tx)">
+        Available <span class="gradient-text">Requests</span>
+      </h2>
+      <p style="color:var(--tx2);font-size:15px;margin-top:4px">Browse and accept tasks posted by your peers</p>
+    </div>
+
+    <!-- Tabs inside a glass-card -->
+    <div class="glass-card" style="padding:28px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:12px">
+        <p style="font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.09em">Task Board</p>
+        <div class="tab-strip">
+          <button id="tab-available" class="tab-btn active">Accept a Request</button>
+          <button id="tab-accepted" class="tab-btn">My Accepted</button>
         </div>
       </div>
 
-      <div id="accepted-content" class="tab-content hidden">
-        <div
-          id="accepted-tasks"
-          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-        >
-          <div class="col-span-full text-center py-16">
-            <div class="text-6xl mb-4">📋</div>
-            <p class="text-gray-400 font-medium text-lg">
-              No accepted tasks yet
-            </p>
-          </div>
+      <div id="available-content">
+        <div id="available-tasks" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px">
+          <div class="empty-state"><div class="empty-icon"><svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><h3>Loading tasks...</h3></div>
+        </div>
+      </div>
+
+      <div id="accepted-content" class="hidden">
+        <div id="accepted-tasks" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px">
+          <div class="empty-state"><div class="empty-icon"><svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><h3>No accepted tasks yet</h3><p>Tasks you accept appear here</p></div>
         </div>
       </div>
     </div>
+  </div>
 
-    <div
-      id="self-accept-modal"
-      class="hidden fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-    >
-      <div class="glass-card max-w-md w-full p-10 text-center">
-        <div class="text-6xl mb-6">⚠️</div>
-        <h3 class="text-3xl font-black text-white mb-3">Cannot Accept</h3>
-        <p class="text-gray-400 mb-8 text-lg">
-          You cannot accept your own request.
-        </p>
-        <button id="close-self-accept-modal" class="btn-primary px-8 py-3">
-          Got it
-        </button>
+  <!-- Modals -->
+  <div id="self-accept-modal" class="modal-overlay hidden">
+    <div class="modal-box" style="text-align:center">
+      <div style="width:50px;height:50px;border-radius:50%;background:rgba(239,68,68,.15);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 0 20px rgba(239,68,68,.2)">
+        <svg width="22" height="22" fill="none" stroke="#f87171" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      </div>
+      <h3 style="font-size:20px;color:var(--tx);margin-bottom:8px">Cannot Accept</h3>
+      <p style="color:var(--tx2);margin-bottom:24px;font-size:14px">You cannot accept your own request.</p>
+      <button id="close-self-accept-modal" class="btn-primary" style="width:100%;padding:12px">Got it</button>
+    </div>
+  </div>
+
+  <div id="confirm-modal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <h3 style="font-size:20px;color:var(--tx);margin-bottom:8px">Accept this task?</h3>
+      <p style="color:var(--tx2);margin-bottom:24px;font-size:14px">You'll be responsible for completing it by the deadline. Make sure you can commit before accepting.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <button id="confirm-accept" class="btn-primary" style="padding:12px">Yes, Accept</button>
+        <button id="cancel-accept" class="btn-secondary" style="padding:12px">Cancel</button>
       </div>
     </div>
+  </div>
 
-    <div
-      id="confirm-modal"
-      class="hidden fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-    >
-      <div class="glass-card max-w-md w-full p-10">
-        <h3 class="text-3xl font-black text-white mb-4">Accept Task?</h3>
-        <p class="text-gray-400 mb-8 text-lg">
-          Are you sure you want to accept this task? You will be responsible for
-          completing it by the deadline.
-        </p>
-        <div class="flex space-x-4">
-          <button id="confirm-accept" class="flex-1 btn-primary py-4">
-            Yes, Accept
-          </button>
-          <button id="cancel-accept" class="flex-1 btn-secondary py-4">
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
+  <script src="js/api.js"></script>
+  <script src="js/aurora.js"></script>
+  <script>
+    if (!localStorage.getItem("token")) window.location.href = "index.html";
+    const user = JSON.parse(localStorage.getItem("user"));
+    let selectedTaskId = null;
 
-    <script src="js/stars.js"></script>
-    <script src="js/animations.js"></script>
-    <script src="js/api.js"></script>
-    <script>
-      if (!localStorage.getItem("token")) {
-        window.location.href = "index.html";
-      }
-
-      const user = JSON.parse(localStorage.getItem("user"));
-      let selectedTaskId = null;
-
-      const tabButtons = document.querySelectorAll(
-        "#tab-available, #tab-accepted"
-      );
-      tabButtons.forEach((btn) => {
-        btn.addEventListener("click", (e) => {
-          tabButtons.forEach((b) => {
-            b.classList.remove("bg-purple-600", "bg-opacity-50", "text-white");
-            b.classList.add("text-gray-400");
-          });
-          e.target.classList.add(
-            "bg-purple-600",
-            "bg-opacity-50",
-            "text-white"
-          );
-          e.target.classList.remove("text-gray-400");
-
-          if (e.target.id === "tab-available") {
-            document
-              .getElementById("available-content")
-              .classList.remove("hidden");
-            document.getElementById("accepted-content").classList.add("hidden");
-          } else {
-            document
-              .getElementById("available-content")
-              .classList.add("hidden");
-            document
-              .getElementById("accepted-content")
-              .classList.remove("hidden");
-            loadAcceptedTasks();
-          }
-        });
-      });
-
-      async function loadAvailableTasks() {
-        try {
-          const data = await apiCall("/tasks/get-requests", "GET");
-          const container = document.getElementById("available-tasks");
-
-          const openTasks = data.tasks.filter((task) => {
-            return (
-              task.status === "open" && task.posted_by !== user.roll_number
-            );
-          });
-
-          if (openTasks.length === 0) {
-            container.innerHTML = `
-                        <div class="col-span-full text-center py-16">
-                            <div class="text-6xl mb-4">📭</div>
-                            <p class="text-gray-400 font-medium text-lg">No available tasks at the moment</p>
-                        </div>
-                    `;
-            return;
-          }
-
-          container.innerHTML = openTasks
-            .map((task) => {
-              const deadline = new Date(task.deadline);
-
-              return `
-                        <div class="task-card">
-                            <h3 class="text-lg font-black text-white mb-3 leading-tight">${task.request.substring(
-                              0,
-                              100
-                            )}${task.request.length > 100 ? "..." : ""}</h3>
-                            <div class="space-y-2 text-sm mb-4">
-                                <p class="text-gray-400">
-                                    <span class="font-bold text-gray-300">Posted by:</span> ${
-                                      task.posted_by_name
-                                    }
-                                </p>
-                                <p class="text-gray-400">
-                                    <span class="font-bold text-gray-300">Deadline:</span> ${deadline.toLocaleDateString()} ${deadline.toLocaleTimeString()}
-                                </p>
-                                <p class="text-gray-400">
-                                    <span class="font-bold text-gray-300">Reward:</span> <span class="text-green-400 font-black text-base">${
-                                      task.reward
-                                    }</span>
-                                </p>
-                            </div>
-                            <div class="flex space-x-3 mt-4">
-                                <button 
-                                    onclick="acceptTask('${task._id}', false)" 
-                                    class="flex-1 btn-primary py-3"
-                                >
-                                    Accept
-                                </button>
-                                <button 
-                                    onclick="rejectTask('${task._id}', this)" 
-                                    class="flex-1 btn-secondary py-3"
-                                >
-                                    Reject
-                                </button>
-                            </div>
-                        </div>
-                    `;
-            })
-            .join("");
-
-          anime({
-            targets: ".task-card",
-            translateY: [50, 0],
-            opacity: [0, 1],
-            delay: anime.stagger(100),
-            duration: 600,
-            easing: "easeOutExpo",
-          });
-        } catch (error) {
-          console.error("Error loading tasks:", error);
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.addEventListener("click", e => {
+        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        e.target.classList.add("active");
+        if (e.target.id === "tab-available") {
+          document.getElementById("available-content").classList.remove("hidden");
+          document.getElementById("accepted-content").classList.add("hidden");
+        } else {
+          document.getElementById("available-content").classList.add("hidden");
+          document.getElementById("accepted-content").classList.remove("hidden");
+          loadAcceptedTasks();
         }
-      }
-
-      async function loadAcceptedTasks() {
-        try {
-          const data = await apiCall("/tasks/my-accepted-tasks", "GET");
-          const container = document.getElementById("accepted-tasks");
-
-          if (data.tasks.length === 0) {
-            container.innerHTML = `
-                        <div class="col-span-full text-center py-16">
-                            <div class="text-6xl mb-4">📋</div>
-                            <p class="text-gray-400 font-medium text-lg">You haven't accepted any tasks yet</p>
-                        </div>
-                    `;
-            return;
-          }
-
-          container.innerHTML = data.tasks
-            .map((task) => {
-              const deadline = new Date(task.deadline);
-
-              return `
-                        <div class="glass-card p-6">
-                            <span class="badge badge-${
-                              task.status === "completed"
-                                ? "success"
-                                : task.status === "verified"
-                                ? "info"
-                                : "warning"
-                            }">${task.status.toUpperCase()}</span>
-                            <h3 class="text-lg font-black text-white mb-3 mt-2">${task.request.substring(
-                              0,
-                              100
-                            )}${task.request.length > 100 ? "..." : ""}</h3>
-                            <p class="text-sm text-gray-400 mb-2">
-                                <span class="font-bold">Deadline:</span> ${deadline.toLocaleDateString()}
-                            </p>
-                            <p class="text-sm text-gray-400 mb-4">
-                                <span class="font-bold">Reward:</span> <span class="text-green-400 font-black">${
-                                  task.reward
-                                }</span>
-                            </p>
-                            ${
-                              task.status === "accepted"
-                                ? `
-                                <a href="assigned-tasks.html" class="inline-block btn-primary px-6 py-3 text-sm">
-                                    Complete Task →
-                                </a>
-                            `
-                                : ""
-                            }
-                        </div>
-                    `;
-            })
-            .join("");
-        } catch (error) {
-          console.error("Error loading accepted tasks:", error);
-        }
-      }
-
-      window.acceptTask = function (taskId, isOwnTask) {
-        selectedTaskId = taskId;
-        document.getElementById("confirm-modal").classList.remove("hidden");
-      };
-
-      document
-        .getElementById("confirm-accept")
-        .addEventListener("click", async () => {
-          try {
-            await apiCall(`/tasks/accept-request/${selectedTaskId}`, "POST");
-            document.getElementById("confirm-modal").classList.add("hidden");
-            loadAvailableTasks();
-            alert("Task accepted successfully!");
-          } catch (error) {
-            alert(error.message || "Failed to accept task");
-          }
-        });
-
-      document.getElementById("cancel-accept").addEventListener("click", () => {
-        document.getElementById("confirm-modal").classList.add("hidden");
       });
+    });
 
-      document
-        .getElementById("close-self-accept-modal")
-        .addEventListener("click", () => {
-          document.getElementById("self-accept-modal").classList.add("hidden");
-        });
-
-      window.rejectTask = async function (taskId, element) {
-        const taskCard = element.closest(".task-card");
-
-        if (!confirm("Delete this task permanently?")) {
+    async function loadAvailableTasks() {
+      try {
+        const data = await apiCall("/tasks/get-requests", "GET");
+        const container = document.getElementById("available-tasks");
+        const openTasks = data.tasks.filter(t => t.status === "open" && t.posted_by !== user.roll_number);
+        if (!openTasks.length) {
+          container.innerHTML = `<div class="empty-state"><div class="empty-icon"><svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><h3>No tasks available</h3><p>Check back later — new requests are posted frequently</p></div>`;
           return;
         }
+        container.innerHTML = openTasks.map(task => {
+          const dl = new Date(task.deadline);
+          const urgent = (dl - new Date()) < 86400000;
+          return `<div class="task-card">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px">
+              <h3 style="font-size:14px;font-weight:700;color:var(--tx);line-height:1.45;flex:1">${task.request.substring(0,120)}${task.request.length>120?"…":""}</h3>
+              ${urgent ? '<span class="badge badge-danger">Urgent</span>' : ''}
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px">
+              <div style="font-size:13px;color:var(--tx2);display:flex;align-items:center;gap:6px">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <strong style="color:var(--tx)">${task.posted_by_name}</strong>
+              </div>
+              <div style="font-size:13px;color:var(--tx2);display:flex;align-items:center;gap:6px">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                ${dl.toLocaleDateString()} · ${dl.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}
+              </div>
+              <div style="font-size:13px;display:flex;align-items:center;gap:6px">
+                <svg width="12" height="12" fill="none" stroke="#34d399" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                <strong style="color:#34d399">${task.reward}</strong>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <button onclick="acceptTask('${task._id}')" class="btn-primary" style="padding:9px;font-size:13px">Accept</button>
+              <button onclick="rejectTask('${task._id}',this)" class="btn-secondary" style="padding:9px;font-size:13px">Skip</button>
+            </div>
+          </div>`;
+        }).join("");
+        anime({ targets: ".task-card", translateY: [24,0], opacity: [0,1], delay: anime.stagger(60), duration: 400, easing: "easeOutExpo" });
+      } catch(err) { console.error(err); }
+    }
 
-        try {
-          const token = localStorage.getItem("token");
-
-          const response = await fetch(
-            `${API_BASE_URL}/tasks/delete-request/${taskId}`,
-            {
-              method: "DELETE",
-              headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-              },
-            }
-          );
-
-          const data = await response.json();
-
-          if (response.ok) {
-            anime({
-              targets: taskCard,
-              opacity: [1, 0],
-              translateX: [0, -100],
-              duration: 400,
-              easing: "easeInQuad",
-              complete: function () {
-                taskCard.remove();
-              },
-            });
-          } else {
-            alert(data.message || "Failed to delete task");
-          }
-        } catch (error) {
-          console.error("Error deleting task:", error);
-          alert("Network error. Cannot delete task.");
+    async function loadAcceptedTasks() {
+      try {
+        const data = await apiCall("/tasks/my-accepted-tasks","GET");
+        const container = document.getElementById("accepted-tasks");
+        if (!data.tasks.length) {
+          container.innerHTML = `<div class="empty-state"><div class="empty-icon"><svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><h3>No accepted tasks yet</h3></div>`;
+          return;
         }
-      };
+        const sm = {completed:"success",verified:"info",accepted:"warning"};
+        container.innerHTML = data.tasks.map(t => {
+          const dl = new Date(t.deadline);
+          return `<div class="task-card">
+            <span class="badge badge-${sm[t.status]||'warning'}" style="margin-bottom:10px;display:inline-flex">${t.status.toUpperCase()}</span>
+            <h3 style="font-size:14px;font-weight:700;color:var(--tx);margin:8px 0 10px;line-height:1.45">${t.request.substring(0,120)}${t.request.length>120?"…":""}</h3>
+            <p style="font-size:13px;color:var(--tx2);margin-bottom:5px">Deadline: ${dl.toLocaleDateString()}</p>
+            <p style="font-size:13px;margin-bottom:14px">Reward: <strong style="color:#34d399">${t.reward}</strong></p>
+            ${t.status==="accepted" ? `<a href="assigned-tasks.html" class="btn-primary" style="width:100%;display:block;text-align:center;padding:9px;font-size:13px">Complete Task</a>` : ""}
+          </div>`;
+        }).join("");
+      } catch(err) { console.error(err); }
+    }
 
-      document.getElementById("logout-btn").addEventListener("click", () => {
-        localStorage.clear();
-        window.location.href = "index.html";
-      });
-
-      loadAvailableTasks();
-    </script>
-  </body>
+    window.acceptTask = id => { selectedTaskId = id; document.getElementById("confirm-modal").classList.remove("hidden"); };
+    document.getElementById("confirm-accept").addEventListener("click", async () => {
+      try { await apiCall(`/tasks/accept-request/${selectedTaskId}`,"POST"); document.getElementById("confirm-modal").classList.add("hidden"); loadAvailableTasks(); }
+      catch(err) { alert(err.message||"Failed to accept task"); }
+    });
+    document.getElementById("cancel-accept").addEventListener("click", () => document.getElementById("confirm-modal").classList.add("hidden"));
+    document.getElementById("close-self-accept-modal").addEventListener("click", () => document.getElementById("self-accept-modal").classList.add("hidden"));
+    window.rejectTask = (id, el) => { const c = el.closest(".task-card"); anime({ targets: c, opacity: [1,0], translateX: [0,-50], duration: 280, easing: "easeInQuad", complete: () => c.remove() }); };
+    document.getElementById("logout-btn").addEventListener("click", () => { localStorage.clear(); window.location.href = "index.html"; });
+    loadAvailableTasks();
+  </script>
+</body>
 </html>
