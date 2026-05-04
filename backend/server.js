@@ -9,6 +9,7 @@ const { initializeTransporter } = require("./services/emailService");
 const authRoutes = require("./routes/auth");
 const taskRoutes = require("./routes/tasks");
 const notificationRoutes = require("./routes/notifications");
+const userRoutes = require("./routes/users");
 
 const app = express();
 
@@ -35,6 +36,7 @@ mongoose
 app.use("/api/auth", authRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/users", userRoutes);
 
 app.get("/api", (req, res) => {
   res.json({

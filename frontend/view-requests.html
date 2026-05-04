@@ -21,6 +21,10 @@
         <a href="assigned-tasks.html" class="nav-link">My Tasks</a>
       </div>
       <div class="nav-right">
+        <a href="profile.html" style="text-decoration:none;text-align:right">
+          <div class="nav-user-name" id="user-name">User</div>
+          <div class="nav-user-points"><span id="user-points">0</span> pts</div>
+        </a>
         <button id="logout-btn" class="btn-danger" style="padding:7px 14px;font-size:12px">Log out</button>
       </div>
     </div>
@@ -44,6 +48,7 @@
         <div class="tab-strip">
           <button id="tab-available" class="tab-btn active">Accept a Request</button>
           <button id="tab-accepted" class="tab-btn">My Accepted</button>
+          <button id="tab-posted" class="tab-btn">My Posted</button>
         </div>
       </div>
 
@@ -56,6 +61,12 @@
       <div id="accepted-content" class="hidden">
         <div id="accepted-tasks" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px">
           <div class="empty-state"><div class="empty-icon"><svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><h3>No accepted tasks yet</h3><p>Tasks you accept appear here</p></div>
+        </div>
+      </div>
+
+      <div id="posted-content" class="hidden">
+        <div id="posted-tasks" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px">
+          <div class="empty-state"><div class="empty-icon"><svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><h3>No posted tasks</h3><p>Tasks you create appear here</p></div>
         </div>
       </div>
     </div>
@@ -84,12 +95,37 @@
     </div>
   </div>
 
+  <div id="bid-modal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <h3 style="font-size:20px;color:var(--tx);margin-bottom:8px">Place your bid</h3>
+      <p style="color:var(--tx2);margin-bottom:18px;font-size:14px">Enter the points you want to bid.</p>
+      <input id="bid-amount" type="number" class="input-field" placeholder="e.g. 15" style="margin-bottom:14px" />
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <button id="submit-bid" class="btn-primary" style="padding:12px">Submit Bid</button>
+        <button id="cancel-bid" class="btn-secondary" style="padding:12px">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="quiz-modal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <h3 style="font-size:20px;color:var(--tx);margin-bottom:8px">Quick Skill Test</h3>
+      <div id="quiz-body" style="display:flex;flex-direction:column;gap:14px;margin-bottom:18px"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <button id="submit-quiz" class="btn-primary" style="padding:12px">Submit</button>
+        <button id="cancel-quiz" class="btn-secondary" style="padding:12px">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <script src="js/api.js"></script>
   <script src="js/aurora.js"></script>
   <script>
-    if (!localStorage.getItem("token")) window.location.href = "index.html";
+    if (!localStorage.getItem("token")) window.location.href = "login.html";
     const user = JSON.parse(localStorage.getItem("user"));
     let selectedTaskId = null;
+    let selectedTaskQuiz = null;
+    let pendingAction = null;
 
     document.querySelectorAll(".tab-btn").forEach(btn => {
       btn.addEventListener("click", e => {
@@ -98,10 +134,17 @@
         if (e.target.id === "tab-available") {
           document.getElementById("available-content").classList.remove("hidden");
           document.getElementById("accepted-content").classList.add("hidden");
-        } else {
+          document.getElementById("posted-content").classList.add("hidden");
+        } else if (e.target.id === "tab-accepted") {
           document.getElementById("available-content").classList.add("hidden");
           document.getElementById("accepted-content").classList.remove("hidden");
+          document.getElementById("posted-content").classList.add("hidden");
           loadAcceptedTasks();
+        } else {
+          document.getElementById("available-content").classList.add("hidden");
+          document.getElementById("accepted-content").classList.add("hidden");
+          document.getElementById("posted-content").classList.remove("hidden");
+          loadPostedTasks();
         }
       });
     });
@@ -110,7 +153,7 @@
       try {
         const data = await apiCall("/tasks/get-requests", "GET");
         const container = document.getElementById("available-tasks");
-        const openTasks = data.tasks.filter(t => t.status === "open" && t.posted_by !== user.roll_number);
+        const openTasks = data.tasks.filter(t => (t.status === "open" || (t.status === "accepted" && (t.team_open_slots||0) > 0)) && t.posted_by !== user.roll_number);
         if (!openTasks.length) {
           container.innerHTML = `<div class="empty-state"><div class="empty-icon"><svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><h3>No tasks available</h3><p>Check back later — new requests are posted frequently</p></div>`;
           return;
@@ -118,15 +161,30 @@
         container.innerHTML = openTasks.map(task => {
           const dl = new Date(task.deadline);
           const urgent = (dl - new Date()) < 86400000;
+          const boardBadge = task.board_type === "course" ? `<span class="badge badge-info">${task.course_code||"Course"}</span>` : task.board_type === "fest_club" ? `<span class="badge badge-warning">${task.club_name||"Fest/Club"}</span>` : "";
+          const biddingBadge = task.bidding_enabled ? `<span class="badge badge-purple">Bidding</span>` : "";
+          const teamBadge = task.team_size > 1 ? `<span class="badge badge-success">Team ${task.team_members?.length||0}/${task.team_size}</span>` : "";
+          const microBadge = task.microtask_mode ? `<span class="badge badge-info">Microtask</span>` : "";
+          const nameText = task.posted_by_name || "Anonymous";
+          const actionBtn = task.bidding_enabled
+            ? `<button onclick="openBidModal('${task._id}')" class="btn-primary" style="padding:9px;font-size:13px">Place Bid</button>`
+            : task.status === "accepted" && task.team_open_slots > 0
+            ? `<button onclick="startAcceptFlow('${task._id}', true)" class="btn-primary" style="padding:9px;font-size:13px">Join Team</button>`
+            : task.can_waitlist
+            ? `<button onclick="joinWaitlist('${task._id}')" class="btn-secondary" style="padding:9px;font-size:13px">Join Waitlist</button>`
+            : `<button onclick="startAcceptFlow('${task._id}', false)" class="btn-primary" style="padding:9px;font-size:13px">Accept</button>`;
           return `<div class="task-card">
             <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px">
               <h3 style="font-size:14px;font-weight:700;color:var(--tx);line-height:1.45;flex:1">${task.request.substring(0,120)}${task.request.length>120?"…":""}</h3>
               ${urgent ? '<span class="badge badge-danger">Urgent</span>' : ''}
             </div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
+              ${boardBadge}${biddingBadge}${teamBadge}${microBadge}
+            </div>
             <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px">
               <div style="font-size:13px;color:var(--tx2);display:flex;align-items:center;gap:6px">
                 <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                <strong style="color:var(--tx)">${task.posted_by_name}</strong>
+                <strong style="color:var(--tx)">${nameText}</strong>
               </div>
               <div style="font-size:13px;color:var(--tx2);display:flex;align-items:center;gap:6px">
                 <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -138,7 +196,7 @@
               </div>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-              <button onclick="acceptTask('${task._id}')" class="btn-primary" style="padding:9px;font-size:13px">Accept</button>
+              ${actionBtn}
               <button onclick="rejectTask('${task._id}',this)" class="btn-secondary" style="padding:9px;font-size:13px">Skip</button>
             </div>
           </div>`;
@@ -169,15 +227,94 @@
       } catch(err) { console.error(err); }
     }
 
-    window.acceptTask = id => { selectedTaskId = id; document.getElementById("confirm-modal").classList.remove("hidden"); };
+    window.startAcceptFlow = async (id, isTeamJoin) => {
+      selectedTaskId = id;
+      pendingAction = isTeamJoin ? "join" : "accept";
+      const data = await apiCall("/tasks/get-requests", "GET");
+      const task = data.tasks.find(t => t._id === id);
+      if (task?.skill_quiz?.enabled) {
+        selectedTaskQuiz = task.skill_quiz.questions;
+        renderQuiz(selectedTaskQuiz);
+        document.getElementById("quiz-modal").classList.remove("hidden");
+        return;
+      }
+      document.getElementById("confirm-modal").classList.remove("hidden");
+    };
+
+    function renderQuiz(questions) {
+      const container = document.getElementById("quiz-body");
+      container.innerHTML = questions.map((q, idx) => {
+        const options = q.options.map((opt, i) => `
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--tx2)">
+            <input type="radio" name="q-${idx}" value="${i}" /> ${opt}
+          </label>
+        `).join("");
+        return `<div><p style="font-size:14px;color:var(--tx);font-weight:600;margin-bottom:6px">${q.prompt}</p>${options}</div>`;
+      }).join("");
+    }
+
     document.getElementById("confirm-accept").addEventListener("click", async () => {
       try { await apiCall(`/tasks/accept-request/${selectedTaskId}`,"POST"); document.getElementById("confirm-modal").classList.add("hidden"); loadAvailableTasks(); }
       catch(err) { alert(err.message||"Failed to accept task"); }
     });
+        document.getElementById("submit-quiz").addEventListener("click", async () => {
+          try {
+            const answers = (selectedTaskQuiz || []).map((q, idx) => {
+              const selected = document.querySelector(`input[name="q-${idx}"]:checked`);
+              return selected ? Number(selected.value) : null;
+            });
+            if (answers.some(a => a === null)) { alert("Answer all questions"); return; }
+            await apiCall(`/tasks/accept-request/${selectedTaskId}`,"POST",{ skill_answers: answers });
+            document.getElementById("quiz-modal").classList.add("hidden");
+            loadAvailableTasks();
+          } catch (err) { alert(err.message || "Failed to accept task"); }
+        });
+        document.getElementById("cancel-quiz").addEventListener("click", () => document.getElementById("quiz-modal").classList.add("hidden"));
+        document.getElementById("cancel-bid").addEventListener("click", () => document.getElementById("bid-modal").classList.add("hidden"));
+
+        window.openBidModal = id => { selectedTaskId = id; document.getElementById("bid-modal").classList.remove("hidden"); };
+        document.getElementById("submit-bid").addEventListener("click", async () => {
+          const amount = Number(document.getElementById("bid-amount").value);
+          try { await apiCall(`/tasks/bid/${selectedTaskId}`,"POST",{ amount }); document.getElementById("bid-modal").classList.add("hidden"); loadAvailableTasks(); }
+          catch(err) { alert(err.message||"Failed to submit bid"); }
+        });
+
+        window.joinWaitlist = async id => {
+          try { await apiCall(`/tasks/join-waitlist/${id}`,"POST"); alert("Added to waitlist"); }
+          catch(err) { alert(err.message||"Failed to join waitlist"); }
+        };
+        async function loadPostedTasks() {
+          try {
+            const data = await apiCall("/tasks/my-posted-tasks","GET");
+            const container = document.getElementById("posted-tasks");
+            if (!data.tasks.length) {
+              container.innerHTML = `<div class="empty-state"><div class="empty-icon"><svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><h3>No posted tasks yet</h3></div>`;
+              return;
+            }
+            container.innerHTML = data.tasks.map(t => {
+              const bids = (t.bids || []).map(b => `
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 0">
+                  <span style="font-size:13px;color:var(--tx2)">${b.name} — ${b.amount} pts</span>
+                  <button onclick="selectBid('${t._id}','${b.roll_number}')" class="btn-primary" style="padding:6px 10px;font-size:12px">Select</button>
+                </div>
+              `).join("");
+              return `<div class="task-card">
+                <h3 style="font-size:14px;font-weight:700;color:var(--tx);margin-bottom:8px">${t.request.substring(0,100)}${t.request.length>100?"…":""}</h3>
+                <p style="font-size:12px;color:var(--tx3);margin-bottom:10px">Status: <strong style="color:var(--tx)">${t.status}</strong></p>
+                ${t.bidding_enabled ? `<div style="font-size:12px;color:var(--tx3);margin-bottom:6px">Bids</div>${bids || '<p style="font-size:12px;color:var(--tx3)">No bids yet</p>'}` : ""}
+              </div>`;
+            }).join("");
+          } catch(err) { console.error(err); }
+        }
+
+        window.selectBid = async (taskId, bidder) => {
+          try { await apiCall(`/tasks/select-bid/${taskId}`,"POST",{ roll_number: bidder }); alert("Bid selected"); loadPostedTasks(); }
+          catch(err) { alert(err.message || "Failed to select bid"); }
+        };
     document.getElementById("cancel-accept").addEventListener("click", () => document.getElementById("confirm-modal").classList.add("hidden"));
     document.getElementById("close-self-accept-modal").addEventListener("click", () => document.getElementById("self-accept-modal").classList.add("hidden"));
     window.rejectTask = (id, el) => { const c = el.closest(".task-card"); anime({ targets: c, opacity: [1,0], translateX: [0,-50], duration: 280, easing: "easeInQuad", complete: () => c.remove() }); };
-    document.getElementById("logout-btn").addEventListener("click", () => { localStorage.clear(); window.location.href = "index.html"; });
+    document.getElementById("logout-btn").addEventListener("click", () => { localStorage.clear(); window.location.href = "login.html"; });
     loadAvailableTasks();
   </script>
 </body>

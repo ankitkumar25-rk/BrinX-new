@@ -1,106 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>BrinX — Login</title>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BrinX — IITJ Task Exchange Platform</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
   <link rel="stylesheet" href="css/styles.css"/>
   <style>
-    body{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}
-    .auth-wrap{width:100%;max-width:420px;position:relative;z-index:1}
+    /* Landing page specific overrides */
+    body { display:flex; flex-direction:column; min-height:100vh; }
+    .hero-container {
+      flex: 1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+      text-align:center; max-width:800px; margin:0 auto; padding:60px 24px; position:relative; z-index:1;
+    }
+    .hero-title { font-size:clamp(40px, 8vw, 72px); font-weight:800; line-height:1.1; margin-bottom:24px; font-family:'Syne', sans-serif; color:var(--tx); }
+    .hero-subtitle { font-size:clamp(16px, 2.5vw, 20px); color:var(--tx2); margin-bottom:48px; max-width:600px; line-height:1.6; }
+    .hero-buttons { display:flex; gap:16px; flex-wrap:wrap; justify-content:center; }
+    .bento-features { display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:20px; max-width:1000px; margin:0 auto 80px; padding:0 24px; position:relative; z-index:1; }
+    .feature-card { padding:32px; text-align:left; }
   </style>
 </head>
 <body>
-  <!-- Aurora background -->
-  <div class="aurora">
-    <div class="ab ab1"></div><div class="ab ab2"></div>
-    <div class="ab ab3"></div><div class="ab ab4"></div>
+  <div class="aurora"><div class="ab ab1"></div><div class="ab ab2"></div><div class="ab ab3"></div><div class="ab ab4"></div></div>
+
+  <!-- Navbar -->
+  <nav class="navbar z1">
+    <div class="navbar-inner">
+      <a href="index.html" class="logo-text" style="font-size:26px;text-decoration:none"><span class="logo-brin">Brin</span><span id="logo-x">X</span></a>
+      <div class="nav-right" style="gap:14px">
+        <a href="login.html" style="color:var(--tx2);font-size:14px;font-weight:600;text-decoration:none;transition:color 0.2s">Sign In</a>
+        <a href="signup.html" class="btn-primary" style="padding:8px 18px;font-size:13px">Sign Up</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <div class="hero-container">
+    <div style="display:inline-block;padding:6px 16px;background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.3);border-radius:100px;margin-bottom:24px;font-size:12px;font-weight:700;color:var(--v-l);letter-spacing:0.05em">
+      EXCLUSIVE TO IIT JODHPUR
+    </div>
+    <h1 class="hero-title">
+      The Ultimate <br> <span class="gradient-text">Task Exchange</span>
+    </h1>
+    <p class="hero-subtitle">
+      Post tasks, offer help, and earn points. BrinX connects students across campus to collaborate on projects, courses, and everyday favors.
+    </p>
+    <div class="hero-buttons">
+      <a href="signup.html" class="btn-primary" style="padding:16px 36px;font-size:16px;border-radius:14px">Get Started Now</a>
+      <a href="login.html" class="btn-secondary" style="padding:16px 36px;font-size:16px;border-radius:14px">Log In to Account</a>
+    </div>
   </div>
 
-  <div class="auth-wrap">
-    <!-- Logo -->
-    <div style="text-align:center;margin-bottom:36px">
-      <div style="display:inline-flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:16px;background:rgba(124,58,237,.2);border:1px solid rgba(124,58,237,.4);margin-bottom:18px;box-shadow:0 0 30px rgba(124,58,237,.3)">
-        <svg width="24" height="24" fill="none" stroke="#a78bfa" stroke-width="2.5" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+  <!-- Features Bento -->
+  <div class="bento-features">
+    <div class="glass-card feature-card">
+      <div class="neu-icon v" style="width:50px;height:50px;margin-bottom:20px;border-radius:14px">
+        <svg width="24" height="24" fill="none" stroke="#a78bfa" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20v-6M6 20V10M18 20V4"/></svg>
       </div>
-      <h1 class="logo-text" style="font-size:52px;display:block;line-height:1"><span class="logo-brin">Brin</span><span id="logo-x">X</span></h1>
-      <p style="color:var(--tx2);margin-top:10px;font-size:14px">Get your task done — smarter, faster, together.</p>
+      <h3 style="font-size:18px;color:var(--tx);margin-bottom:10px;font-weight:700">Earn Points</h3>
+      <p style="font-size:14px;color:var(--tx2)">Help your peers to earn reputation and points. Use your points to get your own tasks done faster.</p>
     </div>
-
-    <!-- Glass Card -->
-    <div class="glass-card" style="padding:40px">
-      <h2 style="font-size:22px;font-weight:700;color:var(--tx);margin-bottom:4px">Welcome back</h2>
-      <p style="color:var(--tx2);font-size:14px;margin-bottom:26px">Sign in to your BrinX account</p>
-
-      <div id="error-message" class="alert alert-error hidden" style="margin-bottom:18px">
-        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        <span id="error-text"></span>
+    
+    <div class="glass-card feature-card">
+      <div class="neu-icon c" style="width:50px;height:50px;margin-bottom:20px;border-radius:14px">
+        <svg width="24" height="24" fill="none" stroke="#67e8f9" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       </div>
-
-      <form id="login-form" style="display:flex;flex-direction:column;gap:18px">
-        <div>
-          <label class="form-label" for="identifier">Email or Roll Number</label>
-          <input type="text" id="identifier" class="input-field" placeholder="b25cs1002 or b25cs1002@iitj.ac.in" required autocomplete="username"/>
-          <p style="font-size:11px;color:var(--tx3);margin-top:5px">You can use either your roll number or IITJ email</p>
-        </div>
-        <div>
-          <label class="form-label" for="password">Password</label>
-          <input type="password" id="password" class="input-field" placeholder="Enter your password" required/>
-        </div>
-        <button type="submit" id="login-btn" class="btn-primary" style="padding:14px;font-size:15px;margin-top:4px">Sign In</button>
-      </form>
-
-      <div style="text-align:center;margin-top:14px">
-        <a href="forgot-password.html" style="color:var(--v-l);font-size:13px;text-decoration:none;font-weight:500">Forgot your password?</a>
-      </div>
-      <div class="glow-line"></div>
-      <p style="text-align:center;color:var(--tx2);font-size:14px">
-        Don't have an account?
-        <a href="signup.html" style="color:var(--v-xl);font-weight:700;text-decoration:none;margin-left:4px">Create one</a>
-      </p>
+      <h3 style="font-size:18px;color:var(--tx);margin-bottom:10px;font-weight:700">Campus Network</h3>
+      <p style="font-size:14px;color:var(--tx2)">Securely locked to the @iitj.ac.in domain. Connect with verified students from your courses and clubs.</p>
     </div>
-
-    <p style="text-align:center;color:var(--tx3);font-size:12px;margin-top:20px">Made with care for college students</p>
+    
+    <div class="glass-card feature-card">
+      <div class="neu-icon g" style="width:50px;height:50px;margin-bottom:20px;border-radius:14px">
+        <svg width="24" height="24" fill="none" stroke="#34d399" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+      </div>
+      <h3 style="font-size:18px;color:var(--tx);margin-bottom:10px;font-weight:700">SOS Requests</h3>
+      <p style="font-size:14px;color:var(--tx2)">Got an emergency? Post an SOS task with Escrow points to jump the queue and get immediate assistance.</p>
+    </div>
   </div>
 
-  <script src="js/api.js"></script>
+  <footer style="text-align:center;padding:40px 20px;border-top:1px solid rgba(255,255,255,0.05);position:relative;z-index:1;margin-top:auto">
+    <p style="font-size:13px;color:var(--tx3)">© 2026 BrinX. Built for IIT Jodhpur.</p>
+  </footer>
+
   <script src="js/aurora.js"></script>
-  <script>
-    if (localStorage.getItem("token")) window.location.href = "dashboard.html";
-
-    document.getElementById("login-form").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const btn = document.getElementById("login-btn");
-      btn.disabled = true; btn.textContent = "Signing in...";
-      try {
-        const res = await fetch(API_BASE_URL + "/auth/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            identifier: document.getElementById("identifier").value.trim(),
-            password:   document.getElementById("password").value,
-          }),
-        });
-        const data = await res.json();
-        if (res.ok) {
-          localStorage.setItem("token", data.token);
-          localStorage.setItem("user",  JSON.stringify(data.user));
-          window.location.href = "dashboard.html";
-        } else {
-          document.getElementById("error-text").textContent = data.message || "Login failed";
-          document.getElementById("error-message").classList.remove("hidden");
-          btn.disabled = false; btn.textContent = "Sign In";
-        }
-      } catch (err) {
-        document.getElementById("error-text").textContent = "Network error. Please try again.";
-        document.getElementById("error-message").classList.remove("hidden");
-        btn.disabled = false; btn.textContent = "Sign In";
-      }
-    });
-  </script>
 </body>
 </html>

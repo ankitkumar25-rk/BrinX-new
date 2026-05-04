@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BrinX — My Profile</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/styles.css"/>
+</head>
+<body>
+  <div class="aurora"><div class="ab ab1"></div><div class="ab ab2"></div><div class="ab ab3"></div><div class="ab ab4"></div></div>
+
+  <!-- Navbar -->
+  <nav class="navbar z1">
+    <div class="navbar-inner">
+      <a href="dashboard.html" class="logo-text" style="font-size:26px;text-decoration:none"><span class="logo-brin">Brin</span><span id="logo-x">X</span></a>
+      <div class="nav-links">
+        <a href="dashboard.html" class="nav-link">Home</a>
+        <a href="post-request.html" class="nav-link">Post Request</a>
+        <a href="view-requests.html" class="nav-link">View Requests</a>
+        <a href="assigned-tasks.html" class="nav-link">My Tasks</a>
+        <a href="profile.html" class="nav-link active">Profile</a>
+      </div>
+      <div class="nav-right">
+        <a href="profile.html" style="text-decoration:none;text-align:right">
+          <div class="nav-user-name" id="user-name">User</div>
+          <div class="nav-user-points"><span id="user-points">0</span> pts</div>
+        </a>
+        <button id="logout-btn" class="btn-danger" style="padding:7px 14px;font-size:12px">Log out</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="z1" style="max-width:800px;margin:0 auto;padding:36px 24px">
+    <div style="margin-bottom:32px">
+      <p style="font-size:13px;color:var(--v-l);font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">Account</p>
+      <h2 style="font-size:clamp(26px,3.5vw,38px);font-weight:800;font-family:'Syne',sans-serif;color:var(--tx)">
+        My <span class="gradient-text">Profile</span>
+      </h2>
+    </div>
+
+    <div class="glass-card" style="padding:32px">
+      <div style="display:flex;align-items:center;gap:20px;margin-bottom:30px">
+        <div style="width:70px;height:70px;border-radius:20px;background:var(--success-pale);display:flex;align-items:center;justify-content:center;border:1px solid rgba(16,185,129,.2)">
+          <svg width="32" height="32" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <div>
+          <h3 style="font-size:24px;font-weight:700;color:var(--tx);margin-bottom:4px" id="profile-name">Loading...</h3>
+          <p style="font-size:14px;color:var(--tx2)" id="profile-role">Student</p>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:30px">
+        <div>
+          <p style="font-size:12px;color:var(--tx3);margin-bottom:4px">Email Address</p>
+          <p style="font-size:15px;color:var(--tx);font-weight:500" id="profile-email">-</p>
+        </div>
+        <div>
+          <p style="font-size:12px;color:var(--tx3);margin-bottom:4px">Roll Number</p>
+          <p style="font-size:15px;color:var(--tx);font-weight:500" id="profile-roll">-</p>
+        </div>
+        <div>
+          <p style="font-size:12px;color:var(--tx3);margin-bottom:4px">Total Points</p>
+          <p style="font-size:15px;color:var(--success);font-weight:700" id="profile-points">0 pts</p>
+        </div>
+        <div>
+          <p style="font-size:12px;color:var(--tx3);margin-bottom:4px">Escrow Points</p>
+          <p style="font-size:15px;color:var(--info);font-weight:700" id="profile-escrow">0 pts</p>
+        </div>
+      </div>
+
+      <div class="glow-line" style="margin:24px 0"></div>
+
+      <div style="display:grid;grid-template-columns:1fr;gap:20px">
+        <div>
+          <p style="font-size:12px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Skills</p>
+          <div id="profile-skills" style="display:flex;flex-wrap:wrap;gap:8px">
+            <p style="font-size:14px;color:var(--tx2)">None added</p>
+          </div>
+        </div>
+        <div>
+          <p style="font-size:12px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Courses</p>
+          <div id="profile-courses" style="display:flex;flex-wrap:wrap;gap:8px">
+            <p style="font-size:14px;color:var(--tx2)">None added</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/aurora.js"></script>
+  <script>
+    if (!localStorage.getItem("token")) window.location.href = "login.html";
+    
+    document.getElementById("logout-btn").addEventListener("click", () => {
+      localStorage.clear();
+      window.location.href = "login.html";
+    });
+
+    async function loadProfile() {
+      try {
+        const data = await apiCall("/auth/me", "GET");
+        const user = data.user;
+        
+        document.getElementById("profile-name").textContent = user.name;
+        document.getElementById("profile-role").textContent = user.role.charAt(0).toUpperCase() + user.role.slice(1);
+        document.getElementById("profile-email").textContent = user.email;
+        document.getElementById("profile-roll").textContent = user.roll_number;
+        document.getElementById("profile-points").textContent = user.points + " pts";
+        document.getElementById("profile-escrow").textContent = user.escrow_points + " pts";
+
+        const skillsContainer = document.getElementById("profile-skills");
+        if (user.skills && user.skills.length > 0) {
+          skillsContainer.innerHTML = user.skills.map(s => `<span class="badge badge-purple">${s}</span>`).join('');
+        }
+        
+        const coursesContainer = document.getElementById("profile-courses");
+        if (user.courses && user.courses.length > 0) {
+          coursesContainer.innerHTML = user.courses.map(c => `<span class="badge badge-info">${c}</span>`).join('');
+        }
+      } catch (err) {
+        console.error("Failed to load profile", err);
+      }
+    }
+    
+    loadProfile();
+  </script>
+</body>
+</html>

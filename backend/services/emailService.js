@@ -119,14 +119,14 @@ const sendPasswordResetEmail = async (email, resetToken, userName) => {
   try {
     const info = await transporter.sendMail(mailOptions);
     if (process.env.EMAIL_SERVICE === "ethereal") {
-      console.log(
-        "📧 Reset Email Preview: " + nodemailer.getTestMessageUrl(info)
-      );
+      const testUrl = nodemailer.getTestMessageUrl(info);
+      console.log("📧 Reset Email Preview: " + testUrl);
+      return { success: true, testUrl };
     }
-    return true;
+    return { success: true };
   } catch (error) {
     console.error("Email send error:", error);
-    return false;
+    return { success: false };
   }
 };
 

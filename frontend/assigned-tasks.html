@@ -21,6 +21,10 @@
         <a href="assigned-tasks.html" class="nav-link active">My Tasks</a>
       </div>
       <div class="nav-right">
+        <a href="profile.html" style="text-decoration:none;text-align:right">
+          <div class="nav-user-name" id="user-name">User</div>
+          <div class="nav-user-points"><span id="user-points">0</span> pts</div>
+        </a>
         <button id="logout-btn" class="btn-danger" style="padding:7px 14px;font-size:12px">Log out</button>
       </div>
     </div>
@@ -103,7 +107,7 @@
   <script src="js/api.js"></script>
   <script src="js/aurora.js"></script>
   <script>
-    if (!localStorage.getItem("token")) window.location.href = "index.html";
+    if (!localStorage.getItem("token")) window.location.href = "login.html";
     let selectedTaskId = null;
 
     document.querySelectorAll(".tab-btn").forEach(btn => {
@@ -133,6 +137,7 @@
         container.innerHTML = active.map(task => {
           const dl = new Date(task.deadline);
           const overdue = new Date() > dl;
+          const teamInfo = task.team_size > 1 ? `<p style="font-size:13px;color:var(--tx2)">Team: ${task.team_members?.length||1}/${task.team_size}</p>` : "";
           return `<div class="task-card">
             <span class="badge badge-${overdue?'danger':'warning'}" style="margin-bottom:10px;display:inline-flex">${overdue?'Overdue':'Active'}</span>
             <h3 style="font-size:14px;font-weight:700;color:var(--tx);margin-bottom:12px;line-height:1.45">${task.request}</h3>
@@ -140,8 +145,12 @@
               <p style="font-size:13px;color:var(--tx2)">Posted by: <strong style="color:var(--tx)">${task.posted_by_name}</strong></p>
               <p style="font-size:13px;color:${overdue?'#f87171':'var(--tx2)'}">Deadline: ${dl.toLocaleString()}</p>
               <p style="font-size:13px">Reward: <strong style="color:#34d399">${task.reward}</strong></p>
+              ${teamInfo}
             </div>
-            <button onclick="openCompleteModal('${task._id}')" class="btn-primary" style="width:100%;padding:10px;font-size:13px">Mark as Completed</button>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <button onclick="openCompleteModal('${task._id}')" class="btn-primary" style="padding:10px;font-size:13px">Mark as Completed</button>
+              <button onclick="dropTask('${task._id}')" class="btn-secondary" style="padding:10px;font-size:13px">Drop</button>
+            </div>
           </div>`;
         }).join("");
         anime({ targets: ".task-card", translateY: [20,0], opacity: [0,1], delay: anime.stagger(70), duration: 400, easing: "easeOutExpo" });
@@ -189,8 +198,12 @@
       try { await apiCall(`/tasks/reward-status/${selectedTaskId}`,"POST",{status:"not_received"}); alert("Reminder sent"); document.getElementById("reward-modal").classList.add("hidden"); }
       catch(err) { alert("Error"); }
     });
+    window.dropTask = async id => {
+      try { await apiCall(`/tasks/drop-task/${id}`,"POST"); alert("Task dropped"); loadActiveTasks(); }
+      catch(err) { alert(err.message || "Failed to drop task"); }
+    };
     document.getElementById("cancel-complete").addEventListener("click", () => document.getElementById("complete-modal").classList.add("hidden"));
-    document.getElementById("logout-btn").addEventListener("click", () => { localStorage.clear(); window.location.href = "index.html"; });
+    document.getElementById("logout-btn").addEventListener("click", () => { localStorage.clear(); window.location.href = "login.html"; });
     loadActiveTasks();
   </script>
 </body>

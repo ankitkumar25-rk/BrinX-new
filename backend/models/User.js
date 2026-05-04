@@ -27,6 +27,27 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  escrow_points: {
+    type: Number,
+    default: 0,
+  },
+  skills: {
+    type: [String],
+    default: [],
+  },
+  courses: {
+    type: [String],
+    default: [],
+  },
+  role: {
+    type: String,
+    enum: ["student", "professor"],
+    default: "student",
+  },
+  last_active_at: {
+    type: Date,
+    default: Date.now,
+  },
   created_at: {
     type: Date,
     default: Date.now,

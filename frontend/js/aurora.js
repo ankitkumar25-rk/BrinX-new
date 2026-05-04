@@ -1,23 +1,5 @@
-// Aurora mouse parallax + ripple micro-interaction
+// Aurora ripple micro-interaction and page load animation
 (function () {
-  // Mouse parallax on aurora blobs
-  let mx = 0, my = 0, tx = 0, ty = 0;
-  document.addEventListener("mousemove", (e) => {
-    mx = (e.clientX / window.innerWidth - 0.5) * 2;
-    my = (e.clientY / window.innerHeight - 0.5) * 2;
-  });
-  function lerp(a, b, t) { return a + (b - a) * t; }
-  (function tick() {
-    tx = lerp(tx, mx, 0.04);
-    ty = lerp(ty, my, 0.04);
-    const blobs = document.querySelectorAll(".ab");
-    blobs.forEach((b, i) => {
-      const f = (i + 1) * 18;
-      b.style.transform = `translate(${tx * f}px, ${ty * f}px)`;
-    });
-    requestAnimationFrame(tick);
-  })();
-
   // Ripple effect on btn-primary clicks
   document.addEventListener("click", (e) => {
     const btn = e.target.closest(".btn-primary");
@@ -43,17 +25,5 @@
     btn.style.overflow = "hidden";
     btn.appendChild(r);
     setTimeout(() => r.remove(), 600);
-  });
-
-  // Animate elements into view on load
-  document.addEventListener("DOMContentLoaded", () => {
-    // Page-enter animation
-    document.body.style.opacity = "0";
-    document.body.style.transform = "translateY(8px)";
-    requestAnimationFrame(() => {
-      document.body.style.transition = "opacity .5s ease, transform .5s ease";
-      document.body.style.opacity = "1";
-      document.body.style.transform = "translateY(0)";
-    });
   });
 })();

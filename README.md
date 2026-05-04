@@ -10,14 +10,18 @@ BrinX is a peer-to-peer task exchange platform for IITJ students. Post tasks you
 
 ## Features
 
+- **Exclusive Landing Page** — beautiful, high-converting entry point introducing BrinX
+- **Google OAuth Sign-In** — native, secure, glassmorphic Google Sign-in/up button linked to IITJ domain
 - **IITJ-only registration** — verified via `rollnumber@iitj.ac.in` email format and 9-character roll number
-- **Flexible login** — sign in using your roll number (`b25cs1002`) or full IITJ email
-- **Task board** — post, browse, accept, and manage tasks
-- **File upload** — submit PDF/image proof of task completion via Multer
-- **Points system** — earn XP for completed tasks; track stats on a bento-grid dashboard
-- **Notifications** — real-time activity feed for task updates
-- **Password reset** — secure 15-minute JWT reset link via email
+- **Flexible login** — sign in using Google, your roll number (`b25cs1002`), or full IITJ email
+- **Advanced Task Boards** — post tasks to specific *Courses* or *Fests & Clubs*, alongside the General board
+- **High-Impact Mechanics** — support for Team/Group tasks, SOS Urgent blasts, Task Bundles, and Microtasks
+- **Task Bidding & Reverse Auctions** — set a max reward and let users bid lower to complete your tasks
+- **Trust & Security** — Points Escrow locks rewards, Skill Gatekeeping tests acceptors with MCQs, and Anonymous mode protects identities
+- **Dynamic Leaderboard** — Reputation decay ensures only actively helpful users stay at the top
+- **Task Waitlists & Auto-Bump** — join waitlists for accepted tasks; inactive tasks auto-bump to the feed
 - **Premium UI** — Aurora animated background, Glassmorphism cards, Neumorphic stat tiles, micro-interactions
+- **Password reset** — secure 15-minute JWT reset link via email
 
 ---
 
@@ -62,11 +66,13 @@ BrinX-new/
 │   │   ├── aurora.js            # Aurora parallax + ripple micro-interactions
 │   │   ├── animations.js        # Anime.js entrance & hover animations
 │   │   └── dashboard.js         # Dashboard stats + notification badge logic
-│   ├── index.html               # Login page
+│   ├── index.html               # High-converting Landing Page
+│   ├── login.html               # Login page with Google OAuth & Custom Email
 │   ├── signup.html              # Registration (IITJ roll number validation)
+│   ├── profile.html             # User profile page (points, courses, skills)
 │   ├── dashboard.html           # Dashboard (bento grid stats + quick actions)
-│   ├── view-requests.html       # Browse & accept open tasks
-│   ├── post-request.html        # Create a new task request
+│   ├── view-requests.html       # Browse, bid, and accept open tasks
+│   ├── post-request.html        # Create a new task request (SOS, Bundle, Bidding)
 │   ├── assigned-tasks.html      # Manage active & completed tasks
 │   ├── notifications.html       # Activity feed
 │   ├── forgot-password.html     # Request password reset
@@ -115,6 +121,7 @@ MONGODB_URI=mongodb://localhost:27017/brinx   # or your Atlas URI
 JWT_SECRET=<generate a strong random secret>
 NODE_ENV=development
 EMAIL_SERVICE=ethereal   # use 'gmail' in production
+GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
 ```
 
 > **Tip — generate a JWT secret:**
@@ -173,6 +180,7 @@ All API routes are prefixed with `/api`.
 |---|---|---|
 | `POST` | `/auth/signup` | Register (email + roll number validated) |
 | `POST` | `/auth/login` | Login with email **or** roll number |
+| `POST` | `/auth/google` | Sign in/up securely using Google OAuth access token |
 | `GET` | `/auth/me` | Get logged-in user profile |
 | `POST` | `/auth/forgot-password` | Send password reset email |
 | `POST` | `/auth/reset-password` | Reset password with JWT token |
@@ -181,11 +189,14 @@ All API routes are prefixed with `/api`.
 
 | Method | Endpoint | Description |
 |---|---|---|
-| `POST` | `/tasks/post-request` | Create a new task |
-| `GET` | `/tasks/get-requests` | Get all open tasks |
+| `POST` | `/tasks/post-request` | Create a new task (supports SOS, teams, bundles) |
+| `GET` | `/tasks/get-requests` | Get all open tasks (auto-bumps inactive tasks) |
 | `GET` | `/tasks/my-posted-tasks` | Get tasks posted by me |
 | `GET` | `/tasks/my-accepted-tasks` | Get tasks accepted by me |
-| `POST` | `/tasks/accept-request/:id` | Accept an open task |
+| `POST` | `/tasks/accept-request/:id` | Accept an open task (evaluates skill quiz) |
+| `POST` | `/tasks/bid/:id` | Place a bid on a task (Reverse Auction) |
+| `POST` | `/tasks/select-bid/:id` | Poster selects a winning bid |
+| `POST` | `/tasks/join-waitlist/:id` | Join waitlist for an accepted task |
 | `POST` | `/tasks/complete-task/:id` | Submit completion proof (multipart) |
 | `POST` | `/tasks/reward-status/:id` | Confirm or dispute reward receipt |
 
@@ -222,10 +233,11 @@ EMAIL_FROM="BrinX <your.gmail@gmail.com>"
 
 ## Login Options
 
-Users can sign in using **either**:
+Users can sign in securely using **any** of the following methods:
 
 | Input | Example |
 |---|---|
+| Google Sign-In | 1-Click native Google OAuth integration |
 | Roll number | `b25cs1002` |
 | IITJ email | `b25cs1002@iitj.ac.in` |
 

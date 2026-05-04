@@ -20,6 +20,10 @@
         <a href="assigned-tasks.html" class="nav-link">My Tasks</a>
       </div>
       <div class="nav-right">
+        <a href="profile.html" style="text-decoration:none;text-align:right">
+          <div class="nav-user-name" id="user-name">User</div>
+          <div class="nav-user-points"><span id="user-points">0</span> pts</div>
+        </a>
         <button id="logout-btn" class="btn-danger" style="padding:7px 14px;font-size:12px">Log out</button>
       </div>
     </div>
@@ -65,6 +69,102 @@
             <div>
               <label class="form-label" for="reward">Reward</label>
               <input type="text" id="reward" class="input-field" placeholder="e.g. Rs.100, Coffee..." required/>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+            <div>
+              <label class="form-label" for="board-type">Board Type</label>
+              <select id="board-type" class="input-field">
+                <option value="general">General</option>
+                <option value="course">Course-linked</option>
+                <option value="fest_club">Fest & Club</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label" for="course-code">Course Code (optional)</label>
+              <input type="text" id="course-code" class="input-field" placeholder="CS201" />
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+            <div>
+              <label class="form-label" for="club-name">Fest / Club Name (optional)</label>
+              <input type="text" id="club-name" class="input-field" placeholder="TechFest, Coding Club" />
+            </div>
+            <div>
+              <label class="form-label" for="team-size">Team Size (1-5)</label>
+              <input type="number" id="team-size" class="input-field" min="1" max="5" value="1" />
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+            <div>
+              <label class="form-label" for="reward-points">Reward Points (for escrow)</label>
+              <input type="number" id="reward-points" class="input-field" min="0" placeholder="e.g. 20" />
+            </div>
+            <div>
+              <label class="form-label" for="max-reward-points">Max Reward Points (bidding)</label>
+              <input type="number" id="max-reward-points" class="input-field" min="0" placeholder="e.g. 30" />
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+            <div>
+              <label class="form-label" for="required-skills">Required Skills (comma-separated)</label>
+              <input type="text" id="required-skills" class="input-field" placeholder="coding, math" />
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;margin-top:22px">
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--tx2)">
+                <input type="checkbox" id="urgent-flag" />
+                SOS Urgent (2x reward, 1 hour)
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--tx2)">
+                <input type="checkbox" id="anonymous-flag" />
+                Anonymous
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--tx2)">
+                <input type="checkbox" id="bidding-flag" />
+                Enable Bidding
+              </label>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--tx2)">
+              <input type="checkbox" id="microtask-flag" />
+              Microtask Mode (instant payout)
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--tx2)">
+              <input type="checkbox" id="bundle-flag" />
+              Bundle Mode
+            </label>
+          </div>
+
+          <div>
+            <label class="form-label" for="microtasks">Microtasks (one per line: title | points | mins)</label>
+            <textarea id="microtasks" rows="4" class="input-field" placeholder="Fix bug | 5 | 10"></textarea>
+          </div>
+
+          <div class="glass-card" style="padding:16px;border:1px dashed rgba(255,255,255,.08)">
+            <p style="font-size:12px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Skill Gate (MCQ)</p>
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--tx2);margin-bottom:12px">
+              <input type="checkbox" id="skill-quiz-flag" />
+              Require skill test before acceptance
+            </label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div style="grid-column:1/-1">
+                <label class="form-label" for="quiz-question">Question</label>
+                <input id="quiz-question" class="input-field" placeholder="What is the time complexity of binary search?" />
+              </div>
+              <div>
+                <label class="form-label" for="quiz-options">Options (comma-separated)</label>
+                <input id="quiz-options" class="input-field" placeholder="O(n), O(log n), O(n log n)" />
+              </div>
+              <div>
+                <label class="form-label" for="quiz-correct">Correct Option Index</label>
+                <input id="quiz-correct" type="number" class="input-field" min="1" max="4" placeholder="2" />
+              </div>
             </div>
           </div>
           <button type="submit" id="submit-btn" class="btn-primary" style="padding:14px;font-size:15px">Post Request</button>
@@ -120,7 +220,7 @@
   <script src="js/api.js"></script>
   <script src="js/aurora.js"></script>
   <script>
-    if (!localStorage.getItem("token")) window.location.href = "index.html";
+    if (!localStorage.getItem("token")) window.location.href = "login.html";
     const today = new Date();
     today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
     document.getElementById("deadline").min = today.toISOString().slice(0,16);
@@ -131,10 +231,54 @@
       btn.disabled = true; btn.textContent = "Posting...";
       try {
         const token = localStorage.getItem("token");
+        const microtaskLines = document.getElementById("microtasks").value
+          .split("\n")
+          .map(l => l.trim())
+          .filter(Boolean);
+        const microtasks = microtaskLines.map(line => {
+          const [title, points, mins] = line.split("|").map(p => p.trim());
+          return { title, points: Number(points), duration_mins: Number(mins) };
+        }).filter(t => t.title);
+
+        const quizEnabled = document.getElementById("skill-quiz-flag").checked;
+        const quizQuestion = document.getElementById("quiz-question").value.trim();
+        const quizOptions = document.getElementById("quiz-options").value
+          .split(",")
+          .map(o => o.trim())
+          .filter(Boolean);
+        const quizCorrect = Number(document.getElementById("quiz-correct").value);
+
+        const payload = {
+          request: document.getElementById("request").value.trim(),
+          deadline: document.getElementById("deadline").value,
+          reward: document.getElementById("reward").value.trim(),
+          board_type: document.getElementById("board-type").value,
+          course_code: document.getElementById("course-code").value.trim(),
+          club_name: document.getElementById("club-name").value.trim(),
+          team_size: Number(document.getElementById("team-size").value),
+          reward_points: Number(document.getElementById("reward-points").value) || null,
+          max_reward_points: Number(document.getElementById("max-reward-points").value) || null,
+          required_skills: document.getElementById("required-skills").value,
+          urgent: document.getElementById("urgent-flag").checked,
+          anonymous: document.getElementById("anonymous-flag").checked,
+          bidding_enabled: document.getElementById("bidding-flag").checked,
+          microtask_mode: document.getElementById("microtask-flag").checked,
+          bundle_mode: document.getElementById("bundle-flag").checked,
+          microtasks,
+          skill_quiz: {
+            enabled: quizEnabled,
+            questions: quizEnabled && quizQuestion && quizOptions.length >= 2 ? [{
+              prompt: quizQuestion,
+              options: quizOptions,
+              correct_index: Math.max(0, quizCorrect - 1),
+            }] : [],
+          },
+        };
+
         const res = await fetch(API_BASE_URL + "/tasks/post-request", {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ request: document.getElementById("request").value.trim(), deadline: document.getElementById("deadline").value, reward: document.getElementById("reward").value.trim() }),
+          body: JSON.stringify(payload),
         });
         const data = await res.json();
         if (res.status === 201 || res.status === 200) {
@@ -151,7 +295,7 @@
         btn.disabled = false; btn.textContent = "Post Request";
       }
     });
-    document.getElementById("logout-btn").addEventListener("click", () => { localStorage.clear(); window.location.href = "index.html"; });
+    document.getElementById("logout-btn").addEventListener("click", () => { localStorage.clear(); window.location.href = "login.html"; });
   </script>
 </body>
 </html>

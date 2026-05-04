@@ -3,6 +3,8 @@ const router = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { body, validationResult } = require("express-validator");
+const { OAuth2Client } = require("google-auth-library");
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const User = require("../models/User");
 const authMiddleware = require("../middleware/auth");
 const {
@@ -120,6 +122,10 @@ router.post(
           email: user.email,
           roll_number: user.roll_number,
           points: user.points,
+          escrow_points: user.escrow_points,
+          skills: user.skills,
+          courses: user.courses,
+          role: user.role,
         },
       });
     } catch (error) {
@@ -160,6 +166,9 @@ router.post(
         return res.status(400).json({ message: "Invalid credentials. Check your email/roll number and password." });
       }
 
+      user.last_active_at = new Date();
+      await user.save();
+
       const token = jwt.sign(
         { userId: user._id, roll_number: user.roll_number, name: user.name },
         process.env.JWT_SECRET,
@@ -175,6 +184,10 @@ router.post(
           email: user.email,
           roll_number: user.roll_number,
           points: user.points,
+          escrow_points: user.escrow_points,
+          skills: user.skills,
+          courses: user.courses,
+          role: user.role,
         },
       });
     } catch (error) {
@@ -183,6 +196,112 @@ router.post(
     }
   }
 );
+
+router.post("/google", async (req, res) => {
+  try {
+    const { token, access_token } = req.body;
+    if (!token && !access_token) return res.status(400).json({ message: "No token provided" });
+
+    let payload;
+    try {
+      if (token) {
+        const ticket = await googleClient.verifyIdToken({
+          idToken: token,
+          audience: process.env.GOOGLE_CLIENT_ID,
+        });
+        payload = ticket.getPayload();
+      } else if (access_token) {
+        const fetch = require("node-fetch"); // In case it's Node < 18, but native fetch works if Node 18+
+        // Fallback to native fetch if require('node-fetch') fails
+        const fetcher = typeof fetch === "function" ? fetch : (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+        
+        try {
+          // just use global.fetch
+          const response = await global.fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+            headers: { Authorization: `Bearer ${access_token}` }
+          });
+          payload = await response.json();
+          if (payload.error) throw new Error("Invalid access token");
+        } catch (e) {
+          const https = require('https');
+          payload = await new Promise((resolve, reject) => {
+            https.get('https://www.googleapis.com/oauth2/v3/userinfo', {
+              headers: { 'Authorization': `Bearer ${access_token}` }
+            }, (res) => {
+              let data = '';
+              res.on('data', chunk => data += chunk);
+              res.on('end', () => resolve(JSON.parse(data)));
+            }).on('error', reject);
+          });
+          if (payload.error) throw new Error("Invalid access token");
+        }
+      }
+    } catch (err) {
+      return res.status(400).json({ message: "Invalid Google token" });
+    }
+
+    const { email, name } = payload;
+
+    if (!email.endsWith("@iitj.ac.in")) {
+      return res.status(400).json({ message: "Please use your IITJ email account" });
+    }
+
+    const roll_number = email.split("@")[0].toLowerCase();
+
+    if (!validateIITJRollNumber(roll_number)) {
+      return res.status(400).json({ message: "Invalid roll number format derived from email" });
+    }
+
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      const randomPassword = Math.random().toString(36).slice(-10) + Math.random().toString(36).slice(-10);
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(randomPassword, salt);
+
+      user = new User({
+        name,
+        email,
+        roll_number,
+        password: hashedPassword,
+      });
+
+      await user.save();
+      
+      sendWelcomeEmail(email, name).catch((err) =>
+        console.error("Welcome email failed:", err)
+      );
+    }
+
+    user.last_active_at = new Date();
+    await user.save();
+
+    const jwtToken = jwt.sign(
+      { userId: user._id, roll_number: user.roll_number, name: user.name },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.json({
+      message: "Google login successful",
+      token: jwtToken,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        roll_number: user.roll_number,
+        points: user.points,
+        escrow_points: user.escrow_points,
+        skills: user.skills,
+        courses: user.courses,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error("Google auth error:", error);
+    res.status(500).json({ message: "Google authentication failed" });
+  }
+});
 
 router.get("/me", authMiddleware, async (req, res) => {
   try {
@@ -199,6 +318,10 @@ router.get("/me", authMiddleware, async (req, res) => {
         email: user.email,
         roll_number: user.roll_number,
         points: user.points,
+        escrow_points: user.escrow_points,
+        skills: user.skills,
+        courses: user.courses,
+        role: user.role,
       },
     });
   } catch (error) {
@@ -224,13 +347,13 @@ router.post("/forgot-password", async (req, res) => {
       { expiresIn: "15m" }
     );
 
-    const emailSent = await sendPasswordResetEmail(
+    const emailResult = await sendPasswordResetEmail(
       user.email,
       resetToken,
       user.name
     );
 
-    if (!emailSent) {
+    if (!emailResult || !emailResult.success) {
       return res
         .status(500)
         .json({ message: "Failed to send email. Please try again later." });
@@ -239,6 +362,7 @@ router.post("/forgot-password", async (req, res) => {
     res.json({
       message: "Password reset link sent to your email",
       emailSent: true,
+      testUrl: emailResult.testUrl,
     });
   } catch (error) {
     console.error("Forgot password error:", error);

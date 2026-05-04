@@ -38,3 +38,19 @@ async function apiCall(endpoint, method = "GET", data = null) {
 
 window.apiCall = apiCall;
 window.API_BASE_URL = API_BASE_URL;
+
+// Auto-populate navbar user info if elements exist
+document.addEventListener("DOMContentLoaded", () => {
+  const userStr = localStorage.getItem("user");
+  if (userStr) {
+    try {
+      const user = JSON.parse(userStr);
+      const nameEl = document.getElementById("user-name");
+      const pointsEl = document.getElementById("user-points");
+      if (nameEl) nameEl.textContent = user.name || "User";
+      if (pointsEl) pointsEl.textContent = user.points || 0;
+    } catch (e) {
+      console.error("Failed to parse user data from localStorage");
+    }
+  }
+});

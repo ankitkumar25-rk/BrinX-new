@@ -21,6 +21,10 @@
         <a href="assigned-tasks.html" class="nav-link">My Tasks</a>
       </div>
       <div class="nav-right">
+        <a href="profile.html" style="text-decoration:none;text-align:right">
+          <div class="nav-user-name" id="user-name">User</div>
+          <div class="nav-user-points"><span id="user-points">0</span> pts</div>
+        </a>
         <button id="logout-btn" class="btn-danger" style="padding:7px 14px;font-size:12px">Log out</button>
       </div>
     </div>
@@ -52,9 +56,9 @@
   <script src="js/api.js"></script>
   <script src="js/aurora.js"></script>
   <script>
-    if (!localStorage.getItem("token")) window.location.href = "index.html";
-    const typeLabels   = { task_posted:"Task Posted", task_accepted:"Task Accepted", task_completed:"Task Completed", reward_reminder:"Reward Reminder", reward_confirmed:"Reward Confirmed" };
-    const typeVariants = { task_posted:"info", task_accepted:"success", task_completed:"purple", reward_reminder:"warning", reward_confirmed:"success" };
+    if (!localStorage.getItem("token")) window.location.href = "login.html";
+    const typeLabels   = { task_posted:"Task Posted", task_accepted:"Task Accepted", task_completed:"Task Completed", reward_reminder:"Reward Reminder", reward_confirmed:"Reward Confirmed", urgent_sos:"SOS Urgent", waitlist_open:"Waitlist Open", bid_received:"Bid Received", bid_selected:"Bid Selected", task_auto_bump:"Auto Bump", task_reassigned:"Reassigned", task_team_joined:"Team Joined" };
+    const typeVariants = { task_posted:"info", task_accepted:"success", task_completed:"purple", reward_reminder:"warning", reward_confirmed:"success", urgent_sos:"danger", waitlist_open:"warning", bid_received:"info", bid_selected:"success", task_auto_bump:"warning", task_reassigned:"info", task_team_joined:"purple" };
 
     async function loadNotifications() {
       try {
@@ -89,7 +93,7 @@
 
     window.markAsRead = async id => { try { await apiCall(`/notifications/${id}/read`,"PATCH"); loadNotifications(); } catch(e){} };
     document.getElementById("mark-all-read").addEventListener("click", async () => { try { await apiCall("/notifications/mark-all-read","PATCH"); loadNotifications(); } catch(e){ alert("Failed"); } });
-    document.getElementById("logout-btn").addEventListener("click", () => { localStorage.clear(); window.location.href = "index.html"; });
+    document.getElementById("logout-btn").addEventListener("click", () => { localStorage.clear(); window.location.href = "login.html"; });
     loadNotifications();
     setInterval(loadNotifications, 30000);
   </script>

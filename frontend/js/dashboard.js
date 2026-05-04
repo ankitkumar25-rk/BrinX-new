@@ -1,12 +1,12 @@
 if (!localStorage.getItem("token")) {
-  window.location.href = "index.html";
+  window.location.href = "login.html";
 }
 
 const user = JSON.parse(localStorage.getItem("user"));
 
 if (!user) {
   localStorage.clear();
-  window.location.href = "index.html";
+  window.location.href = "login.html";
 }
 
 document.getElementById("user-name").textContent = user.name;
@@ -16,7 +16,7 @@ document.getElementById("total-points").textContent = user.points;
 
 document.getElementById("logout-btn").addEventListener("click", () => {
   localStorage.clear();
-  window.location.href = "index.html";
+  window.location.href = "login.html";
 });
 
 async function loadDashboardStats() {
@@ -70,4 +70,36 @@ document.getElementById("notification-btn")?.addEventListener("click", () => {
 loadDashboardStats();
 loadNotifications();
 
+async function loadPreferences() {
+  try {
+    const data = await apiCall("/users/preferences", "GET");
+    document.getElementById("skills-input").value = (data.skills || []).join(", ");
+    document.getElementById("courses-input").value = (data.courses || []).join(", ");
+    document.getElementById("escrow-badge").textContent =
+      "Escrow: " + (data.escrow_points || 0) + " pts";
+  } catch (error) {
+    console.error("Error loading preferences:", error);
+  }
+}
+
+document.getElementById("prefs-form")?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const skills = document.getElementById("skills-input").value
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const courses = document.getElementById("courses-input").value
+    .split(",")
+    .map((c) => c.trim().toUpperCase())
+    .filter(Boolean);
+
+  try {
+    await apiCall("/users/preferences", "PUT", { skills, courses });
+    loadPreferences();
+  } catch (error) {
+    console.error("Error saving preferences:", error);
+  }
+});
+
 setInterval(loadNotifications, 30000);
+loadPreferences();
