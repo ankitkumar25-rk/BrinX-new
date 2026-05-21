@@ -17,7 +17,7 @@ BrinX is a peer-to-peer task exchange platform for IITJ students. Post tasks you
 - **Advanced Task Boards** — post tasks to specific *Courses* or *Fests & Clubs*, alongside the General board
 - **High-Impact Mechanics** — support for Team/Group tasks, SOS Urgent blasts, Task Bundles, and Microtasks
 - **Task Bidding & Reverse Auctions** — set a max reward and let users bid lower to complete your tasks
-- **Trust & Security** — Points Escrow locks rewards, Skill Gatekeeping tests acceptors with MCQs, and Anonymous mode protects identities
+- **Trust & Security** — Poster verification releases rewards, Skill Gatekeeping tests acceptors with MCQs, and Anonymous mode protects identities
 - **Dynamic Leaderboard** — Reputation decay ensures only actively helpful users stay at the top
 - **Task Waitlists & Auto-Bump** — join waitlists for accepted tasks; inactive tasks auto-bump to the feed
 - **Premium UI** — Aurora animated background, Glassmorphism cards, Neumorphic stat tiles, micro-interactions

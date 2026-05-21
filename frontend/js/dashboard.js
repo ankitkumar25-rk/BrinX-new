@@ -47,9 +47,7 @@ function getCurrentUserTaskShare(task, totalPoints) {
 
 function calculateEarnedPoints(tasks) {
   return tasks.reduce((total, task) => {
-    const rewardWasPaid =
-      task.status === "verified" ||
-      (task.status === "completed" && !task.escrow_locked);
+    const rewardWasPaid = task.status === "verified";
 
     if (!rewardWasPaid) return total;
 
@@ -122,8 +120,6 @@ async function loadPreferences() {
     const data = await apiCall("/users/preferences", "GET");
     document.getElementById("skills-input").value = (data.skills || []).join(", ");
     document.getElementById("courses-input").value = (data.courses || []).join(", ");
-    document.getElementById("escrow-badge").textContent =
-      "Escrow: " + (data.escrow_points || 0) + " pts";
   } catch (error) {
     console.error("Error loading preferences:", error);
   }

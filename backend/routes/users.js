@@ -6,7 +6,7 @@ const authMiddleware = require("../middleware/auth");
 router.get("/preferences", authMiddleware, async (req, res) => {
   try {
     const user = await User.findOne({ roll_number: req.user.roll_number }).select(
-      "skills courses role points escrow_points"
+      "skills courses role points"
     );
 
     if (!user) {
@@ -18,7 +18,6 @@ router.get("/preferences", authMiddleware, async (req, res) => {
       courses: user.courses || [],
       role: user.role,
       points: user.points,
-      escrow_points: user.escrow_points,
     });
   } catch (error) {
     console.error("Get preferences error:", error);
@@ -46,7 +45,7 @@ router.put("/preferences", authMiddleware, async (req, res) => {
       { roll_number: req.user.roll_number },
       update,
       { new: true }
-    ).select("skills courses role points escrow_points");
+    ).select("skills courses role points");
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -58,7 +57,6 @@ router.put("/preferences", authMiddleware, async (req, res) => {
       courses: user.courses,
       role: user.role,
       points: user.points,
-      escrow_points: user.escrow_points,
     });
   } catch (error) {
     console.error("Update preferences error:", error);

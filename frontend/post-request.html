@@ -100,11 +100,11 @@
 
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
             <div>
-              <label class="form-label" for="reward-points">Reward Points (for escrow)</label>
+              <label class="form-label" for="reward-points">Reward Points</label>
               <input type="number" id="reward-points" class="input-field" min="0" placeholder="e.g. 20" />
             </div>
             <div>
-              <label class="form-label" for="max-reward-points">Max Reward Points (bidding)</label>
+              <label class="form-label" for="max-reward-points">Bidding Max Points</label>
               <input type="number" id="max-reward-points" class="input-field" min="0" placeholder="e.g. 30" />
             </div>
           </div>
@@ -248,6 +248,7 @@
           .filter(Boolean);
         const quizCorrect = Number(document.getElementById("quiz-correct").value);
 
+        const biddingEnabled = document.getElementById("bidding-flag").checked;
         const payload = {
           request: document.getElementById("request").value.trim(),
           deadline: document.getElementById("deadline").value,
@@ -256,12 +257,12 @@
           course_code: document.getElementById("course-code").value.trim(),
           club_name: document.getElementById("club-name").value.trim(),
           team_size: Number(document.getElementById("team-size").value),
-          reward_points: Number(document.getElementById("reward-points").value) || null,
+          reward_points: biddingEnabled ? null : Number(document.getElementById("reward-points").value) || null,
           max_reward_points: Number(document.getElementById("max-reward-points").value) || null,
           required_skills: document.getElementById("required-skills").value,
           urgent: document.getElementById("urgent-flag").checked,
           anonymous: document.getElementById("anonymous-flag").checked,
-          bidding_enabled: document.getElementById("bidding-flag").checked,
+          bidding_enabled: biddingEnabled,
           microtask_mode: document.getElementById("microtask-flag").checked,
           bundle_mode: document.getElementById("bundle-flag").checked,
           microtasks,

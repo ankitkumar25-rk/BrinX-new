@@ -89,21 +89,6 @@
     </div>
   </div>
 
-  <!-- Reward modal -->
-  <div id="reward-modal" class="modal-overlay hidden">
-    <div class="modal-box" style="text-align:center">
-      <div style="width:52px;height:52px;border-radius:50%;background:rgba(245,158,11,.15);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 0 20px rgba(245,158,11,.2)">
-        <svg width="26" height="26" fill="none" stroke="#fbbf24" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-      </div>
-      <h3 style="font-size:20px;color:var(--tx);margin-bottom:8px">Confirm Reward</h3>
-      <p style="color:var(--tx2);margin-bottom:24px;font-size:14px">Have you received the reward for this task?</p>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <button id="reward-received" class="btn-primary" style="padding:12px">Yes, Received</button>
-        <button id="reward-not-received" class="btn-danger" style="padding:12px">Not Yet</button>
-      </div>
-    </div>
-  </div>
-
   <script src="js/api.js"></script>
   <script src="js/aurora.js"></script>
   <script>
@@ -126,6 +111,19 @@
           <p style="font-size:13px;color:var(--tx2)">Reward: <strong style="color:#34d399">${task.reward}</strong></p>
           <p style="font-size:13px;color:var(--tx2)">Reward Points: <strong style="color:#34d399">${getRewardPointText(task)}</strong></p>
         </div>
+      `;
+    }
+
+    function getFilePreviewUrl(fileName) {
+      return fileName ? `/uploads/${encodeURIComponent(fileName)}` : "";
+    }
+
+    function renderSubmittedFile(task) {
+      if (!task.file_link) return "";
+      return `
+        <a href="${getFilePreviewUrl(task.file_link)}" target="_blank" rel="noopener" class="btn-secondary" style="display:block;text-align:center;padding:10px;font-size:13px;margin-bottom:10px">
+          Preview Submitted File
+        </a>
       `;
     }
 
@@ -186,16 +184,16 @@
           return;
         }
         container.innerHTML = done.map(task => `<div class="task-card">
-          <span class="badge badge-${task.status==='verified'?'success':'info'}" style="margin-bottom:10px;display:inline-flex">${task.status==='verified'?'Verified':'Pending Reward'}</span>
+          <span class="badge badge-${task.status==='verified'?'success':'info'}" style="margin-bottom:10px;display:inline-flex">${task.status==='verified'?'Verified':'Pending Verification'}</span>
           <h3 style="font-size:14px;font-weight:700;color:var(--tx);margin:8px 0 10px">${task.request}</h3>
           ${renderRewardDetails(task)}
-          ${task.status==='completed'?`<button onclick="openRewardModal('${task._id}')" class="btn-secondary" style="width:100%;padding:10px;font-size:13px">Confirm Reward Status</button>`:`<p style="font-size:13px;color:#34d399;font-weight:600">Reward confirmed</p>`}
+          ${renderSubmittedFile(task)}
+          ${task.status==='completed'?`<p style="font-size:13px;color:#fbbf24;font-weight:600">Waiting for poster verification</p>`:`<p style="font-size:13px;color:#34d399;font-weight:600">Verified and points released</p>`}
         </div>`).join("");
       } catch(err) { console.error(err); }
     }
 
     window.openCompleteModal = id => { selectedTaskId = id; document.getElementById("complete-modal").classList.remove("hidden"); };
-    window.openRewardModal   = id => { selectedTaskId = id; document.getElementById("reward-modal").classList.remove("hidden"); };
 
     document.getElementById("complete-form").addEventListener("submit", async e => {
       e.preventDefault();
@@ -205,17 +203,9 @@
       try {
         const res = await fetch(`${API_BASE_URL}/tasks/complete-task/${selectedTaskId}`, { method:"POST", headers:{Authorization:`Bearer ${localStorage.getItem("token")}`}, body:fd });
         const data = await res.json();
-        if (res.ok) { alert("Task completed! +" + (data.pointsAdded||0) + " points"); document.getElementById("complete-modal").classList.add("hidden"); document.getElementById("complete-form").reset(); loadActiveTasks(); }
+        if (res.ok) { alert("Proof submitted. Points will be released after poster verification."); document.getElementById("complete-modal").classList.add("hidden"); document.getElementById("complete-form").reset(); loadActiveTasks(); }
         else alert(data.message||"Failed");
       } catch(err) { alert("Network error"); }
-    });
-    document.getElementById("reward-received").addEventListener("click", async () => {
-      try { await apiCall(`/tasks/reward-status/${selectedTaskId}`,"POST",{status:"received"}); alert("Thank you for confirming!"); document.getElementById("reward-modal").classList.add("hidden"); loadCompletedTasks(); }
-      catch(err) { alert("Error"); }
-    });
-    document.getElementById("reward-not-received").addEventListener("click", async () => {
-      try { await apiCall(`/tasks/reward-status/${selectedTaskId}`,"POST",{status:"not_received"}); alert("Reminder sent"); document.getElementById("reward-modal").classList.add("hidden"); }
-      catch(err) { alert("Error"); }
     });
     window.dropTask = async id => {
       try { await apiCall(`/tasks/drop-task/${id}`,"POST"); alert("Task dropped"); loadActiveTasks(); }

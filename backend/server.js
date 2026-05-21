@@ -72,6 +72,7 @@ app.get("/api", (req, res) => {
         acceptRequest: "POST /api/tasks/accept-request/:id",
         deleteRequest: "DELETE /api/tasks/delete-request/:id",
         completeTask: "POST /api/tasks/complete-task/:id",
+        verifyTask: "POST /api/tasks/verify-task/:id",
         myPostedTasks: "GET /api/tasks/my-posted-tasks",
         myAcceptedTasks: "GET /api/tasks/my-accepted-tasks",
         rewardStatus: "POST /api/tasks/reward-status/:id",

@@ -148,10 +148,6 @@ const taskSchema = new mongoose.Schema({
     ],
     default: [],
   },
-  escrow_locked: {
-    type: Boolean,
-    default: false,
-  },
   bump_count: {
     type: Number,
     default: 0,
