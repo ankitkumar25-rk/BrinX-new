@@ -127,6 +127,25 @@
     let selectedTaskQuiz = null;
     let pendingAction = null;
 
+    function hasPointValue(value) {
+      return value !== null && value !== undefined && value !== "" && Number.isFinite(Number(value));
+    }
+
+    function getRewardPointText(task) {
+      if (hasPointValue(task.reward_points)) return `${Number(task.reward_points)} pts`;
+      if (task.bidding_enabled && hasPointValue(task.max_reward_points)) return `Up to ${Number(task.max_reward_points)} pts`;
+      return "Not set";
+    }
+
+    function renderRewardDetails(task, bottomMargin = "14px") {
+      return `
+        <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:${bottomMargin}">
+          <p style="font-size:13px;color:var(--tx2)">Reward: <strong style="color:#34d399">${task.reward}</strong></p>
+          <p style="font-size:13px;color:var(--tx2)">Reward Points: <strong style="color:#34d399">${getRewardPointText(task)}</strong></p>
+        </div>
+      `;
+    }
+
     document.querySelectorAll(".tab-btn").forEach(btn => {
       btn.addEventListener("click", e => {
         document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
@@ -190,10 +209,7 @@
                 <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                 ${dl.toLocaleDateString()} · ${dl.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}
               </div>
-              <div style="font-size:13px;display:flex;align-items:center;gap:6px">
-                <svg width="12" height="12" fill="none" stroke="#34d399" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                <strong style="color:#34d399">${task.reward}</strong>
-              </div>
+              ${renderRewardDetails(task, "0")}
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
               ${actionBtn}
@@ -220,7 +236,7 @@
             <span class="badge badge-${sm[t.status]||'warning'}" style="margin-bottom:10px;display:inline-flex">${t.status.toUpperCase()}</span>
             <h3 style="font-size:14px;font-weight:700;color:var(--tx);margin:8px 0 10px;line-height:1.45">${t.request.substring(0,120)}${t.request.length>120?"…":""}</h3>
             <p style="font-size:13px;color:var(--tx2);margin-bottom:5px">Deadline: ${dl.toLocaleDateString()}</p>
-            <p style="font-size:13px;margin-bottom:14px">Reward: <strong style="color:#34d399">${t.reward}</strong></p>
+            ${renderRewardDetails(t)}
             ${t.status==="accepted" ? `<a href="assigned-tasks.html" class="btn-primary" style="width:100%;display:block;text-align:center;padding:9px;font-size:13px">Complete Task</a>` : ""}
           </div>`;
         }).join("");
@@ -301,6 +317,7 @@
               return `<div class="task-card">
                 <h3 style="font-size:14px;font-weight:700;color:var(--tx);margin-bottom:8px">${t.request.substring(0,100)}${t.request.length>100?"…":""}</h3>
                 <p style="font-size:12px;color:var(--tx3);margin-bottom:10px">Status: <strong style="color:var(--tx)">${t.status}</strong></p>
+                ${renderRewardDetails(t, "10px")}
                 ${t.bidding_enabled ? `<div style="font-size:12px;color:var(--tx3);margin-bottom:6px">Bids</div>${bids || '<p style="font-size:12px;color:var(--tx3)">No bids yet</p>'}` : ""}
               </div>`;
             }).join("");

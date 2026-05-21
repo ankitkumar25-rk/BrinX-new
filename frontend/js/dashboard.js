@@ -12,7 +12,51 @@ if (!user) {
 document.getElementById("user-name").textContent = user.name;
 document.getElementById("user-points").textContent = user.points;
 document.getElementById("welcome-name").textContent = user.name;
-document.getElementById("total-points").textContent = user.points;
+document.getElementById("total-points").textContent = 0;
+
+function getTaskBasePoints(task) {
+  const rewardPoints = Number(task.reward_points);
+  const base = Number.isFinite(rewardPoints) ? rewardPoints : 10;
+
+  if (task.urgent && task.urgent_expires_at) {
+    const completedAt = task.completed_at ? new Date(task.completed_at) : null;
+    const urgentExpiresAt = new Date(task.urgent_expires_at);
+    if (completedAt && completedAt <= urgentExpiresAt) {
+      return base * 2;
+    }
+  }
+
+  return base;
+}
+
+function getCurrentUserTaskShare(task, totalPoints) {
+  const members = task.team_members?.length
+    ? task.team_members
+    : [{ roll_number: task.accepted_by }];
+
+  const memberIndex = members.findIndex(
+    (member) => member.roll_number === user.roll_number
+  );
+
+  if (memberIndex === -1 || !members.length) return 0;
+
+  const share = Math.floor(totalPoints / members.length);
+  const remainder = totalPoints - share * members.length;
+  return memberIndex === 0 ? share + remainder : share;
+}
+
+function calculateEarnedPoints(tasks) {
+  return tasks.reduce((total, task) => {
+    const rewardWasPaid =
+      task.status === "verified" ||
+      (task.status === "completed" && !task.escrow_locked);
+
+    if (!rewardWasPaid) return total;
+
+    const basePoints = getTaskBasePoints(task);
+    return total + getCurrentUserTaskShare(task, basePoints);
+  }, 0);
+}
 
 document.getElementById("logout-btn").addEventListener("click", () => {
   localStorage.clear();
@@ -35,6 +79,9 @@ async function loadDashboardStats() {
       (t) => t.status === "completed" || t.status === "verified"
     ).length;
     document.getElementById("tasks-completed").textContent = completedCount;
+    document.getElementById("total-points").textContent = calculateEarnedPoints(
+      acceptedTasks.tasks
+    );
 
     anime({
       targets:

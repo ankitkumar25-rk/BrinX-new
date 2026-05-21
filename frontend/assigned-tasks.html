@@ -110,6 +110,25 @@
     if (!localStorage.getItem("token")) window.location.href = "login.html";
     let selectedTaskId = null;
 
+    function hasPointValue(value) {
+      return value !== null && value !== undefined && value !== "" && Number.isFinite(Number(value));
+    }
+
+    function getRewardPointText(task) {
+      if (hasPointValue(task.reward_points)) return `${Number(task.reward_points)} pts`;
+      if (task.bidding_enabled && hasPointValue(task.max_reward_points)) return `Up to ${Number(task.max_reward_points)} pts`;
+      return "Not set";
+    }
+
+    function renderRewardDetails(task, bottomMargin = "14px") {
+      return `
+        <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:${bottomMargin}">
+          <p style="font-size:13px;color:var(--tx2)">Reward: <strong style="color:#34d399">${task.reward}</strong></p>
+          <p style="font-size:13px;color:var(--tx2)">Reward Points: <strong style="color:#34d399">${getRewardPointText(task)}</strong></p>
+        </div>
+      `;
+    }
+
     document.querySelectorAll(".tab-btn").forEach(btn => {
       btn.addEventListener("click", e => {
         document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
@@ -144,7 +163,7 @@
             <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px">
               <p style="font-size:13px;color:var(--tx2)">Posted by: <strong style="color:var(--tx)">${task.posted_by_name}</strong></p>
               <p style="font-size:13px;color:${overdue?'#f87171':'var(--tx2)'}">Deadline: ${dl.toLocaleString()}</p>
-              <p style="font-size:13px">Reward: <strong style="color:#34d399">${task.reward}</strong></p>
+              ${renderRewardDetails(task, "0")}
               ${teamInfo}
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
@@ -169,7 +188,7 @@
         container.innerHTML = done.map(task => `<div class="task-card">
           <span class="badge badge-${task.status==='verified'?'success':'info'}" style="margin-bottom:10px;display:inline-flex">${task.status==='verified'?'Verified':'Pending Reward'}</span>
           <h3 style="font-size:14px;font-weight:700;color:var(--tx);margin:8px 0 10px">${task.request}</h3>
-          <p style="font-size:13px;color:var(--tx2);margin-bottom:14px">Reward: <strong style="color:#34d399">${task.reward}</strong></p>
+          ${renderRewardDetails(task)}
           ${task.status==='completed'?`<button onclick="openRewardModal('${task._id}')" class="btn-secondary" style="width:100%;padding:10px;font-size:13px">Confirm Reward Status</button>`:`<p style="font-size:13px;color:#34d399;font-weight:600">Reward confirmed</p>`}
         </div>`).join("");
       } catch(err) { console.error(err); }
