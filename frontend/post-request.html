@@ -103,9 +103,9 @@
               <label class="form-label" for="reward-points">Reward Points</label>
               <input type="number" id="reward-points" class="input-field" min="0" placeholder="e.g. 20" />
             </div>
-            <div>
+            <div id="max-reward-wrap" class="hidden">
               <label class="form-label" for="max-reward-points">Bidding Max Points</label>
-              <input type="number" id="max-reward-points" class="input-field" min="0" placeholder="e.g. 30" />
+              <input type="number" id="max-reward-points" class="input-field" min="0" placeholder="e.g. 30" disabled />
             </div>
           </div>
 
@@ -113,6 +113,10 @@
             <div>
               <label class="form-label" for="required-skills">Required Skills (comma-separated)</label>
               <input type="text" id="required-skills" class="input-field" placeholder="coding, math" />
+            </div>
+            <div id="target-email-wrap" class="hidden">
+              <label class="form-label" for="target-email">Send Anonymous Request To</label>
+              <input type="email" id="target-email" class="input-field" placeholder="student@iitj.ac.in" disabled />
             </div>
             <div style="display:flex;align-items:center;gap:12px;margin-top:22px">
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--tx2)">
@@ -225,6 +229,31 @@
     today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
     document.getElementById("deadline").min = today.toISOString().slice(0,16);
 
+    const biddingFlag = document.getElementById("bidding-flag");
+    const maxRewardWrap = document.getElementById("max-reward-wrap");
+    const maxRewardInput = document.getElementById("max-reward-points");
+    const anonymousFlag = document.getElementById("anonymous-flag");
+    const targetEmailWrap = document.getElementById("target-email-wrap");
+    const targetEmailInput = document.getElementById("target-email");
+
+    function syncConditionalFields() {
+      const biddingEnabled = biddingFlag.checked;
+      maxRewardWrap.classList.toggle("hidden", !biddingEnabled);
+      maxRewardInput.disabled = !biddingEnabled;
+      maxRewardInput.required = biddingEnabled;
+      if (!biddingEnabled) maxRewardInput.value = "";
+
+      const anonymousEnabled = anonymousFlag.checked;
+      targetEmailWrap.classList.toggle("hidden", !anonymousEnabled);
+      targetEmailInput.disabled = !anonymousEnabled;
+      targetEmailInput.required = anonymousEnabled;
+      if (!anonymousEnabled) targetEmailInput.value = "";
+    }
+
+    biddingFlag.addEventListener("change", syncConditionalFields);
+    anonymousFlag.addEventListener("change", syncConditionalFields);
+    syncConditionalFields();
+
     document.getElementById("post-request-form").addEventListener("submit", async (e) => {
       e.preventDefault();
       const btn = document.getElementById("submit-btn");
@@ -262,6 +291,7 @@
           required_skills: document.getElementById("required-skills").value,
           urgent: document.getElementById("urgent-flag").checked,
           anonymous: document.getElementById("anonymous-flag").checked,
+          target_email: document.getElementById("target-email").value.trim(),
           bidding_enabled: biddingEnabled,
           microtask_mode: document.getElementById("microtask-flag").checked,
           bundle_mode: document.getElementById("bundle-flag").checked,
@@ -287,6 +317,7 @@
           document.getElementById("success-message").classList.remove("hidden");
           document.getElementById("error-message").classList.add("hidden");
           document.getElementById("post-request-form").reset();
+          syncConditionalFields();
           setTimeout(() => { window.location.href = "dashboard.html"; }, 1500);
         } else { throw new Error(data.message || "Failed to post task"); }
       } catch(err) {

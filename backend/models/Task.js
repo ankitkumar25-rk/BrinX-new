@@ -99,6 +99,10 @@ const taskSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  targeted_to: {
+    roll_number: { type: String, default: null },
+    email: { type: String, default: null },
+  },
   required_skills: {
     type: [String],
     default: [],

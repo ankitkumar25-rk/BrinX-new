@@ -2,7 +2,7 @@ if (!localStorage.getItem("token")) {
   window.location.href = "login.html";
 }
 
-const user = JSON.parse(localStorage.getItem("user"));
+let user = JSON.parse(localStorage.getItem("user"));
 
 if (!user) {
   localStorage.clear();
@@ -21,10 +21,16 @@ document.getElementById("logout-btn").addEventListener("click", () => {
 
 async function loadDashboardStats() {
   try {
-    const [postedTasks, acceptedTasks] = await Promise.all([
+    const [me, postedTasks, acceptedTasks] = await Promise.all([
+      apiCall("/auth/me", "GET"),
       apiCall("/tasks/my-posted-tasks", "GET"),
       apiCall("/tasks/my-accepted-tasks", "GET"),
     ]);
+    user = me.user;
+    localStorage.setItem("user", JSON.stringify(user));
+    document.getElementById("user-name").textContent = user.name;
+    document.getElementById("user-points").textContent = user.points;
+    document.getElementById("welcome-name").textContent = user.name;
 
     document.getElementById("tasks-posted").textContent =
       postedTasks.tasks.length;

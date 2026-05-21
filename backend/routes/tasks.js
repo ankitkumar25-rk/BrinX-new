@@ -125,6 +125,7 @@ router.post("/post-request", authMiddleware, async (req, res) => {
       team_size,
       urgent,
       anonymous,
+      target_email,
       required_skills,
       microtask_mode,
       bundle_mode,
@@ -155,6 +156,26 @@ router.post("/post-request", authMiddleware, async (req, res) => {
     const isBidding = parseBoolean(bidding_enabled);
     const isMicro = parseBoolean(microtask_mode);
     const isBundle = parseBoolean(bundle_mode);
+    let targetedUser = null;
+
+    if (isAnonymous) {
+      const normalizedTargetEmail = String(target_email || "").trim().toLowerCase();
+      if (!normalizedTargetEmail) {
+        return res.status(400).json({
+          message: "Target user email is required for anonymous requests",
+        });
+      }
+
+      targetedUser = await User.findOne({ email: normalizedTargetEmail });
+      if (!targetedUser) {
+        return res.status(404).json({ message: "No user found with this email" });
+      }
+      if (targetedUser.roll_number === roll_number) {
+        return res.status(400).json({
+          message: "You cannot send an anonymous request to yourself",
+        });
+      }
+    }
 
     let parsedQuiz = null;
     if (skill_quiz) {
@@ -242,6 +263,12 @@ router.post("/post-request", authMiddleware, async (req, res) => {
       urgent: isUrgent,
       urgent_expires_at: urgentExpiresAt,
       anonymous: isAnonymous,
+      targeted_to: targetedUser
+        ? {
+            roll_number: targetedUser.roll_number,
+            email: targetedUser.email,
+          }
+        : undefined,
       required_skills: normalizeList(required_skills),
       microtask_mode: isMicro,
       bundle_mode: isBundle,
@@ -255,13 +282,15 @@ router.post("/post-request", authMiddleware, async (req, res) => {
     await task.save();
     await updateUserActivity(roll_number);
 
-    const allUsers = await User.find({ roll_number: { $ne: roll_number } });
+    const allUsers = targetedUser
+      ? [targetedUser]
+      : await User.find({ roll_number: { $ne: roll_number } });
     const notifications = allUsers.map((user) => ({
       type: "task_posted",
       sender: roll_number,
       sender_name: name,
       receiver: user.roll_number,
-      message: `New Task Posted by ${name}: ${request.substring(
+      message: `New Task Posted by ${isAnonymous ? "Anonymous" : name}: ${request.substring(
         0,
         50
       )}... Check it out!`,
@@ -272,7 +301,7 @@ router.post("/post-request", authMiddleware, async (req, res) => {
       await Notification.insertMany(notifications);
     }
 
-    if (isUrgent && task.required_skills.length) {
+    if (!targetedUser && isUrgent && task.required_skills.length) {
       const onlineUsers = allUsers.filter((user) => {
         if (!user.last_active_at) return false;
         const isOnline =
@@ -310,9 +339,20 @@ router.get("/get-requests", authMiddleware, async (req, res) => {
   try {
     const currentUser = await User.findOne({ roll_number: req.user.roll_number });
     const tasks = await Task.find({
-      $or: [
-        { status: "open", accepted_by: null },
-        { status: "accepted", team_open_slots: { $gt: 0 } },
+      $and: [
+        {
+          $or: [
+            { status: "open", accepted_by: null },
+            { status: "accepted", team_open_slots: { $gt: 0 } },
+          ],
+        },
+        {
+          $or: [
+            { "targeted_to.roll_number": null },
+            { "targeted_to.roll_number": { $exists: false } },
+            { "targeted_to.roll_number": req.user.roll_number },
+          ],
+        },
       ],
     }).sort({ created_at: -1 });
 
