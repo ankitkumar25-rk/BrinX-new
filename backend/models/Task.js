@@ -148,6 +148,20 @@ const taskSchema = new mongoose.Schema({
     ],
     default: [],
   },
+  reward_confirmations: {
+    type: [
+      {
+        roll_number: String,
+        name: String,
+        status: {
+          type: String,
+          enum: ["received", "not_received"],
+        },
+        created_at: { type: Date, default: Date.now },
+      },
+    ],
+    default: [],
+  },
   bump_count: {
     type: Number,
     default: 0,

@@ -93,7 +93,13 @@
   <script src="js/aurora.js"></script>
   <script>
     if (!localStorage.getItem("token")) window.location.href = "login.html";
+    const user = JSON.parse(localStorage.getItem("user"));
     let selectedTaskId = null;
+
+    if (user) {
+      document.getElementById("user-name").textContent = user.name;
+      document.getElementById("user-points").textContent = user.points;
+    }
 
     function hasPointValue(value) {
       return value !== null && value !== undefined && value !== "" && Number.isFinite(Number(value));
@@ -124,6 +130,34 @@
         <a href="${getFilePreviewUrl(task.file_link)}" target="_blank" rel="noopener" class="btn-secondary" style="display:block;text-align:center;padding:10px;font-size:13px;margin-bottom:10px">
           Preview Submitted File
         </a>
+      `;
+    }
+
+    function getRewardConfirmationStatus(task) {
+      return task.reward_confirmations?.find(
+        (confirmation) => confirmation.roll_number === user?.roll_number
+      )?.status || null;
+    }
+
+    function renderRewardConfirmation(task) {
+      if (task.status !== "verified") {
+        return `<p style="font-size:13px;color:#fbbf24;font-weight:600">Waiting for poster verification</p>`;
+      }
+
+      const confirmationStatus = getRewardConfirmationStatus(task);
+      if (confirmationStatus === "received") {
+        return `<p style="font-size:13px;color:#34d399;font-weight:600">You confirmed the reward was received</p>`;
+      }
+      if (confirmationStatus === "not_received") {
+        return `<p style="font-size:13px;color:#f87171;font-weight:600">Reward issue reported to poster</p>`;
+      }
+
+      return `
+        <p style="font-size:13px;color:#34d399;font-weight:600;margin-bottom:10px">Verified and points released</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <button onclick="confirmRewardStatus('${task._id}', 'received')" class="btn-primary" style="padding:10px;font-size:13px">Reward Received</button>
+          <button onclick="confirmRewardStatus('${task._id}', 'not_received')" class="btn-danger" style="padding:10px;font-size:13px">Not As Said</button>
+        </div>
       `;
     }
 
@@ -188,7 +222,7 @@
           <h3 style="font-size:14px;font-weight:700;color:var(--tx);margin:8px 0 10px">${task.request}</h3>
           ${renderRewardDetails(task)}
           ${renderSubmittedFile(task)}
-          ${task.status==='completed'?`<p style="font-size:13px;color:#fbbf24;font-weight:600">Waiting for poster verification</p>`:`<p style="font-size:13px;color:#34d399;font-weight:600">Verified and points released</p>`}
+          ${renderRewardConfirmation(task)}
         </div>`).join("");
       } catch(err) { console.error(err); }
     }
@@ -210,6 +244,15 @@
     window.dropTask = async id => {
       try { await apiCall(`/tasks/drop-task/${id}`,"POST"); alert("Task dropped"); loadActiveTasks(); }
       catch(err) { alert(err.message || "Failed to drop task"); }
+    };
+    window.confirmRewardStatus = async (id, status) => {
+      try {
+        await apiCall(`/tasks/reward-status/${id}`,"POST",{ status });
+        alert(status === "received" ? "Reward receipt confirmed" : "Reward issue reported");
+        loadCompletedTasks();
+      } catch(err) {
+        alert(err.message || "Failed to update reward status");
+      }
     };
     document.getElementById("cancel-complete").addEventListener("click", () => document.getElementById("complete-modal").classList.add("hidden"));
     document.getElementById("logout-btn").addEventListener("click", () => { localStorage.clear(); window.location.href = "login.html"; });

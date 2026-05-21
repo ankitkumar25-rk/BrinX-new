@@ -930,25 +930,42 @@ router.post("/reward-status/:id", authMiddleware, async (req, res) => {
       return res.status(403).json({ message: "Unauthorized action" });
     }
 
-    if (status === "received") {
-      return res.status(400).json({
-        message: "Points are released only after the task poster verifies the submission.",
-      });
-    } else {
-      const notification = new Notification({
-        type: "reward_reminder",
-        sender: roll_number,
-        sender_name: name,
-        receiver: task.posted_by,
-        message: `${name} hasn't received the reward yet for the completed task.`,
-        task_id: task._id,
-      });
-
-      await notification.save();
-      await updateUserActivity(roll_number);
-
-      res.json({ message: "Reminder sent to task creator" });
+    if (!["received", "not_received"].includes(status)) {
+      return res.status(400).json({ message: "Invalid reward status" });
     }
+
+    if (task.status !== "verified") {
+      return res.status(400).json({
+        message: "Reward status can be confirmed after the poster verifies the task.",
+      });
+    }
+
+    task.reward_confirmations = task.reward_confirmations.filter(
+      (confirmation) => confirmation.roll_number !== roll_number
+    );
+    task.reward_confirmations.push({ roll_number, name, status });
+    await task.save();
+
+    const received = status === "received";
+    const notification = new Notification({
+      type: received ? "reward_confirmed" : "reward_reminder",
+      sender: roll_number,
+      sender_name: name,
+      receiver: task.posted_by,
+      message: received
+        ? `${name} confirmed receiving the promised reward for your task.`
+        : `${name} says the reward was not received as promised for your task.`,
+      task_id: task._id,
+    });
+
+    await notification.save();
+    await updateUserActivity(roll_number);
+
+    res.json({
+      message: received
+        ? "Reward receipt confirmed"
+        : "Reward issue reported to task creator",
+    });
   } catch (error) {
     console.error("Reward status error:", error);
     res.status(500).json({ message: "Server error updating reward status" });
