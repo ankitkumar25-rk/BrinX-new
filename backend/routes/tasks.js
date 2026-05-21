@@ -109,6 +109,13 @@ const splitPoints = (total, members) => {
   }));
 };
 
+const getPayableMembers = (task) => {
+  const members = task.team_members.length
+    ? task.team_members
+    : [{ roll_number: task.accepted_by, name: task.accepted_by_name }];
+  return members.filter((m) => m.roll_number);
+};
+
 router.post("/post-request", authMiddleware, async (req, res) => {
   try {
     const { roll_number, name } = req.user;
@@ -235,6 +242,18 @@ router.post("/post-request", authMiddleware, async (req, res) => {
 
     if (!isBidding && !Number.isFinite(numericReward)) {
       return res.status(400).json({ message: "Reward points required" });
+    }
+
+    const rewardBudget = isBidding ? numericMaxReward : numericReward;
+    if (!Number.isFinite(rewardBudget) || rewardBudget <= 0) {
+      return res.status(400).json({ message: "Reward points must be greater than 0" });
+    }
+
+    const maxPossiblePayout = isUrgent ? rewardBudget * 2 : rewardBudget;
+    if (poster.points < maxPossiblePayout) {
+      return res.status(400).json({
+        message: "Reward points must be less than or equal to your points wallet.",
+      });
     }
 
     const urgentExpiresAt = isUrgent
@@ -889,10 +908,7 @@ router.post("/verify-task/:id", authMiddleware, async (req, res) => {
     }
 
     const basePoints = getBaseRewardPoints(task);
-    const members = task.team_members.length
-      ? task.team_members
-      : [{ roll_number: task.accepted_by, name: task.accepted_by_name }];
-    const payableMembers = members.filter((m) => m.roll_number);
+    const payableMembers = getPayableMembers(task);
     const allocations = splitPoints(basePoints, payableMembers);
     const poster = await User.findOne({ roll_number: task.posted_by });
 
@@ -978,6 +994,26 @@ router.post("/reward-status/:id", authMiddleware, async (req, res) => {
       return res.status(400).json({
         message: "Reward status can be confirmed after the poster verifies the task.",
       });
+    }
+
+    task.reward_confirmations = task.reward_confirmations || [];
+    const previousConfirmation = task.reward_confirmations.find(
+      (confirmation) => confirmation.roll_number === roll_number
+    );
+    const shouldRefundPoster =
+      status === "received" && previousConfirmation?.status !== "received";
+
+    if (shouldRefundPoster) {
+      const basePoints = getBaseRewardPoints(task);
+      const allocations = splitPoints(basePoints, getPayableMembers(task));
+      const userAllocation = allocations.find((m) => m.roll_number === roll_number);
+
+      if (userAllocation?.points > 0) {
+        await User.updateOne(
+          { roll_number: task.posted_by },
+          { $inc: { points: userAllocation.points } }
+        );
+      }
     }
 
     task.reward_confirmations = task.reward_confirmations.filter(

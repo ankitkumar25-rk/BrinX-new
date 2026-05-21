@@ -101,11 +101,11 @@
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
             <div>
               <label class="form-label" for="reward-points">Reward Points</label>
-              <input type="number" id="reward-points" class="input-field" min="0" placeholder="e.g. 20" />
+              <input type="number" id="reward-points" class="input-field" min="1" placeholder="e.g. 20" required />
             </div>
             <div id="max-reward-wrap" class="hidden">
               <label class="form-label" for="max-reward-points">Bidding Max Points</label>
-              <input type="number" id="max-reward-points" class="input-field" min="0" placeholder="e.g. 30" disabled />
+              <input type="number" id="max-reward-points" class="input-field" min="1" placeholder="e.g. 30" disabled />
             </div>
           </div>
 
@@ -232,6 +232,7 @@
     const biddingFlag = document.getElementById("bidding-flag");
     const maxRewardWrap = document.getElementById("max-reward-wrap");
     const maxRewardInput = document.getElementById("max-reward-points");
+    const rewardPointsInput = document.getElementById("reward-points");
     const anonymousFlag = document.getElementById("anonymous-flag");
     const targetEmailWrap = document.getElementById("target-email-wrap");
     const targetEmailInput = document.getElementById("target-email");
@@ -242,6 +243,7 @@
       maxRewardInput.disabled = !biddingEnabled;
       maxRewardInput.required = biddingEnabled;
       if (!biddingEnabled) maxRewardInput.value = "";
+      rewardPointsInput.required = !biddingEnabled;
 
       const anonymousEnabled = anonymousFlag.checked;
       targetEmailWrap.classList.toggle("hidden", !anonymousEnabled);
@@ -286,7 +288,7 @@
           course_code: document.getElementById("course-code").value.trim(),
           club_name: document.getElementById("club-name").value.trim(),
           team_size: Number(document.getElementById("team-size").value),
-          reward_points: biddingEnabled ? null : Number(document.getElementById("reward-points").value) || null,
+          reward_points: biddingEnabled ? null : Number(rewardPointsInput.value) || null,
           max_reward_points: Number(document.getElementById("max-reward-points").value) || null,
           required_skills: document.getElementById("required-skills").value,
           urgent: document.getElementById("urgent-flag").checked,
