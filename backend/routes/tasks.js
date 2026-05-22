@@ -88,7 +88,10 @@ const updateUserActivity = async (rollNumber) => {
 const getBaseRewardPoints = (task) => {
   const base = Number.isFinite(task.reward_points) ? task.reward_points : 10;
   if (task.urgent && task.urgent_expires_at) {
-    if (new Date() <= new Date(task.urgent_expires_at)) {
+    const referenceTime = task.completed_at
+      ? new Date(task.completed_at)
+      : new Date();
+    if (referenceTime <= new Date(task.urgent_expires_at)) {
       return base * 2;
     }
   }
@@ -104,6 +107,13 @@ const splitPoints = (total, members) => {
     name: m.name,
     points: idx === 0 ? share + remainder : share,
   }));
+};
+
+const getPayableMembers = (task) => {
+  const members = task.team_members.length
+    ? task.team_members
+    : [{ roll_number: task.accepted_by, name: task.accepted_by_name }];
+  return members.filter((m) => m.roll_number);
 };
 
 router.post("/post-request", authMiddleware, async (req, res) => {
@@ -122,6 +132,7 @@ router.post("/post-request", authMiddleware, async (req, res) => {
       team_size,
       urgent,
       anonymous,
+      target_email,
       required_skills,
       microtask_mode,
       bundle_mode,
@@ -152,6 +163,26 @@ router.post("/post-request", authMiddleware, async (req, res) => {
     const isBidding = parseBoolean(bidding_enabled);
     const isMicro = parseBoolean(microtask_mode);
     const isBundle = parseBoolean(bundle_mode);
+    let targetedUser = null;
+
+    if (isAnonymous) {
+      const normalizedTargetEmail = String(target_email || "").trim().toLowerCase();
+      if (!normalizedTargetEmail) {
+        return res.status(400).json({
+          message: "Target user email is required for anonymous requests",
+        });
+      }
+
+      targetedUser = await User.findOne({ email: normalizedTargetEmail });
+      if (!targetedUser) {
+        return res.status(404).json({ message: "No user found with this email" });
+      }
+      if (targetedUser.roll_number === roll_number) {
+        return res.status(400).json({
+          message: "You cannot send an anonymous request to yourself",
+        });
+      }
+    }
 
     let parsedQuiz = null;
     if (skill_quiz) {
@@ -209,26 +240,20 @@ router.post("/post-request", authMiddleware, async (req, res) => {
       return res.status(400).json({ message: "Max reward points required" });
     }
 
-    let pointsToLock = null;
-    if (isBidding) {
-      pointsToLock = numericMaxReward;
-    } else if (Number.isFinite(numericReward)) {
-      pointsToLock = numericReward;
+    if (!isBidding && !Number.isFinite(numericReward)) {
+      return res.status(400).json({ message: "Reward points required" });
     }
 
-    let escrowLocked = false;
-    if (Number.isFinite(pointsToLock) && pointsToLock > 0) {
-      const available = poster.points - poster.escrow_points;
-      if (available < pointsToLock) {
-        return res.status(400).json({
-          message: "Insufficient points for escrow. Reduce reward points.",
-        });
-      }
-      await User.updateOne(
-        { roll_number },
-        { $inc: { points: -pointsToLock, escrow_points: pointsToLock } }
-      );
-      escrowLocked = true;
+    const rewardBudget = isBidding ? numericMaxReward : numericReward;
+    if (!Number.isFinite(rewardBudget) || rewardBudget <= 0) {
+      return res.status(400).json({ message: "Reward points must be greater than 0" });
+    }
+
+    const maxPossiblePayout = isUrgent ? rewardBudget * 2 : rewardBudget;
+    if (poster.points < maxPossiblePayout) {
+      return res.status(400).json({
+        message: "Reward points must be less than or equal to your points wallet.",
+      });
     }
 
     const urgentExpiresAt = isUrgent
@@ -239,7 +264,9 @@ router.post("/post-request", authMiddleware, async (req, res) => {
       request,
       deadline,
       reward,
-      reward_points: Number.isFinite(numericReward) ? numericReward : null,
+      reward_points: !isBidding && Number.isFinite(numericReward)
+        ? numericReward
+        : null,
       max_reward_points: Number.isFinite(numericMaxReward)
         ? numericMaxReward
         : null,
@@ -255,6 +282,12 @@ router.post("/post-request", authMiddleware, async (req, res) => {
       urgent: isUrgent,
       urgent_expires_at: urgentExpiresAt,
       anonymous: isAnonymous,
+      targeted_to: targetedUser
+        ? {
+            roll_number: targetedUser.roll_number,
+            email: targetedUser.email,
+          }
+        : undefined,
       required_skills: normalizeList(required_skills),
       microtask_mode: isMicro,
       bundle_mode: isBundle,
@@ -263,19 +296,20 @@ router.post("/post-request", authMiddleware, async (req, res) => {
         enabled: quizEnabled,
         questions: quizQuestions,
       },
-      escrow_locked: escrowLocked,
     });
 
     await task.save();
     await updateUserActivity(roll_number);
 
-    const allUsers = await User.find({ roll_number: { $ne: roll_number } });
+    const allUsers = targetedUser
+      ? [targetedUser]
+      : await User.find({ roll_number: { $ne: roll_number } });
     const notifications = allUsers.map((user) => ({
       type: "task_posted",
       sender: roll_number,
       sender_name: name,
       receiver: user.roll_number,
-      message: `New Task Posted by ${name}: ${request.substring(
+      message: `New Task Posted by ${isAnonymous ? "Anonymous" : name}: ${request.substring(
         0,
         50
       )}... Check it out!`,
@@ -286,7 +320,7 @@ router.post("/post-request", authMiddleware, async (req, res) => {
       await Notification.insertMany(notifications);
     }
 
-    if (isUrgent && task.required_skills.length) {
+    if (!targetedUser && isUrgent && task.required_skills.length) {
       const onlineUsers = allUsers.filter((user) => {
         if (!user.last_active_at) return false;
         const isOnline =
@@ -324,9 +358,20 @@ router.get("/get-requests", authMiddleware, async (req, res) => {
   try {
     const currentUser = await User.findOne({ roll_number: req.user.roll_number });
     const tasks = await Task.find({
-      $or: [
-        { status: "open", accepted_by: null },
-        { status: "accepted", team_open_slots: { $gt: 0 } },
+      $and: [
+        {
+          $or: [
+            { status: "open", accepted_by: null },
+            { status: "accepted", team_open_slots: { $gt: 0 } },
+          ],
+        },
+        {
+          $or: [
+            { "targeted_to.roll_number": null },
+            { "targeted_to.roll_number": { $exists: false } },
+            { "targeted_to.roll_number": req.user.roll_number },
+          ],
+        },
       ],
     }).sort({ created_at: -1 });
 
@@ -553,17 +598,6 @@ router.post("/accept-request/:id", authMiddleware, async (req, res) => {
         )
       );
 
-      if (task.escrow_locked) {
-        const pointsToRelease = task.reward_points || task.max_reward_points || 0;
-        if (pointsToRelease > 0) {
-          await User.updateOne(
-            { roll_number: task.posted_by },
-            { $inc: { escrow_points: -pointsToRelease } }
-          );
-        }
-        task.escrow_locked = false;
-      }
-
       task.status = "verified";
       task.completed_at = new Date();
       task.verified_at = new Date();
@@ -744,16 +778,6 @@ router.post("/select-bid/:id", authMiddleware, async (req, res) => {
     task.team_members = [{ roll_number: bid.roll_number, name: bid.name }];
     task.team_open_slots = Math.max(task.team_size - 1, 0);
 
-    if (task.max_reward_points && task.escrow_locked) {
-      const refund = task.max_reward_points - bid.amount;
-      if (refund > 0) {
-        await User.updateOne(
-          { roll_number: task.posted_by },
-          { $inc: { points: refund, escrow_points: -refund } }
-        );
-      }
-    }
-
     await task.save();
 
     await Notification.create({
@@ -787,18 +811,6 @@ router.delete("/delete-request/:id", authMiddleware, async (req, res) => {
       return res
         .status(403)
         .json({ message: "You can only delete your own tasks" });
-    }
-
-    if (task.escrow_locked && task.max_reward_points) {
-      await User.updateOne(
-        { roll_number },
-        { $inc: { points: task.max_reward_points, escrow_points: -task.max_reward_points } }
-      );
-    } else if (task.escrow_locked && task.reward_points) {
-      await User.updateOne(
-        { roll_number },
-        { $inc: { points: task.reward_points, escrow_points: -task.reward_points } }
-      );
     }
 
     await Task.findByIdAndDelete(taskId);
@@ -838,39 +850,24 @@ router.post(
       if (task.status === "completed") {
         return res.status(400).json({ message: "Task is already completed" });
       }
+      if (task.status === "verified") {
+        return res.status(400).json({ message: "Task is already verified" });
+      }
+      if (!req.file) {
+        return res.status(400).json({ message: "Completion proof is required" });
+      }
 
-      task.file_link = req.file ? req.file.filename : null;
+      task.file_link = req.file.filename;
       task.status = "completed";
       task.completed_at = new Date();
       await task.save();
-
-      const completedOnTime = task.completed_at <= new Date(task.deadline);
-      let pointsAdded = 0;
-
-      if (completedOnTime && !task.escrow_locked) {
-        const basePoints = getBaseRewardPoints(task);
-        const members = task.team_members.length
-          ? task.team_members
-          : [{ roll_number, name }];
-        const allocations = splitPoints(basePoints, members);
-        pointsAdded = basePoints;
-
-        await Promise.all(
-          allocations.map((m) =>
-            User.updateOne(
-              { roll_number: m.roll_number },
-              { $inc: { points: m.points } }
-            )
-          )
-        );
-      }
 
       const notification = new Notification({
         type: "task_completed",
         sender: roll_number,
         sender_name: name,
         receiver: task.posted_by,
-        message: `${name} has submitted your task. Please give reward within 2 days.`,
+        message: `${name} submitted completion proof. Review and verify the task to release points.`,
         task_id: task._id,
       });
 
@@ -878,9 +875,9 @@ router.post(
       await updateUserActivity(roll_number);
 
       res.json({
-        message: "Task completed successfully",
+        message: "Task submitted for poster verification",
         task,
-        pointsAdded,
+        pointsAdded: 0,
       });
     } catch (error) {
       console.error("Complete task error:", error);
@@ -888,6 +885,86 @@ router.post(
     }
   }
 );
+
+router.post("/verify-task/:id", authMiddleware, async (req, res) => {
+  try {
+    const task = await Task.findById(req.params.id);
+    const { roll_number, name } = req.user;
+
+    if (!task) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    if (task.posted_by !== roll_number) {
+      return res.status(403).json({ message: "Only the task poster can verify this task" });
+    }
+
+    if (task.status !== "completed") {
+      return res.status(400).json({ message: "Task must be submitted before verification" });
+    }
+
+    if (!task.file_link) {
+      return res.status(400).json({ message: "No submitted file found for this task" });
+    }
+
+    const basePoints = getBaseRewardPoints(task);
+    const payableMembers = getPayableMembers(task);
+    const allocations = splitPoints(basePoints, payableMembers);
+    const poster = await User.findOne({ roll_number: task.posted_by });
+
+    if (!poster) {
+      return res.status(404).json({ message: "Task poster not found" });
+    }
+
+    if (poster.points < basePoints) {
+      return res.status(400).json({
+        message: "Insufficient points to verify this task and release reward.",
+      });
+    }
+
+    await Promise.all([
+      User.updateOne(
+        { roll_number: task.posted_by },
+        { $inc: { points: -basePoints } }
+      ),
+      ...allocations.map((m) =>
+        User.updateOne(
+          { roll_number: m.roll_number },
+          { $inc: { points: m.points } }
+        )
+      ),
+    ]);
+
+    task.status = "verified";
+    task.verified_at = new Date();
+    await task.save();
+
+    if (allocations.length) {
+      await Notification.insertMany(
+        allocations.map((m) => ({
+          type: "reward_confirmed",
+          sender: roll_number,
+          sender_name: name,
+          receiver: m.roll_number,
+          message: `${name} verified your submitted task. ${m.points} points were added to your account.`,
+          task_id: task._id,
+        }))
+      );
+    }
+
+    await updateUserActivity(roll_number);
+
+    res.json({
+      message: "Task verified and points released",
+      task,
+      pointsAdded: basePoints,
+      allocations,
+    });
+  } catch (error) {
+    console.error("Verify task error:", error);
+    res.status(500).json({ message: "Server error while verifying task" });
+  }
+});
 
 router.post("/reward-status/:id", authMiddleware, async (req, res) => {
   try {
@@ -909,67 +986,62 @@ router.post("/reward-status/:id", authMiddleware, async (req, res) => {
       return res.status(403).json({ message: "Unauthorized action" });
     }
 
-    if (status === "received") {
-      task.status = "verified";
-      task.verified_at = new Date();
-      await task.save();
-
-      if (task.escrow_locked) {
-        const basePoints = getBaseRewardPoints(task);
-        const members = task.team_members.length
-          ? task.team_members
-          : [{ roll_number: task.accepted_by, name: task.accepted_by_name }];
-        const allocations = splitPoints(basePoints, members);
-
-        await Promise.all(
-          allocations.map((m) =>
-            User.updateOne(
-              { roll_number: m.roll_number },
-              { $inc: { points: m.points } }
-            )
-          )
-        );
-
-        const pointsToRelease = task.reward_points || task.max_reward_points || 0;
-        if (pointsToRelease > 0) {
-          await User.updateOne(
-            { roll_number: task.posted_by },
-            { $inc: { escrow_points: -pointsToRelease } }
-          );
-        }
-
-        task.escrow_locked = false;
-        await task.save();
-      }
-
-      const notification = new Notification({
-        type: "reward_confirmed",
-        sender: roll_number,
-        sender_name: name,
-        receiver: task.posted_by,
-        message: `${name} has confirmed receiving the reward for your task.`,
-        task_id: task._id,
-      });
-
-      await notification.save();
-      await updateUserActivity(roll_number);
-
-      res.json({ message: "Reward confirmed successfully" });
-    } else {
-      const notification = new Notification({
-        type: "reward_reminder",
-        sender: roll_number,
-        sender_name: name,
-        receiver: task.posted_by,
-        message: `${name} hasn't received the reward yet for the completed task.`,
-        task_id: task._id,
-      });
-
-      await notification.save();
-      await updateUserActivity(roll_number);
-
-      res.json({ message: "Reminder sent to task creator" });
+    if (!["received", "not_received"].includes(status)) {
+      return res.status(400).json({ message: "Invalid reward status" });
     }
+
+    if (task.status !== "verified") {
+      return res.status(400).json({
+        message: "Reward status can be confirmed after the poster verifies the task.",
+      });
+    }
+
+    task.reward_confirmations = task.reward_confirmations || [];
+    const previousConfirmation = task.reward_confirmations.find(
+      (confirmation) => confirmation.roll_number === roll_number
+    );
+    const shouldRefundPoster =
+      status === "received" && previousConfirmation?.status !== "received";
+
+    if (shouldRefundPoster) {
+      const basePoints = getBaseRewardPoints(task);
+      const allocations = splitPoints(basePoints, getPayableMembers(task));
+      const userAllocation = allocations.find((m) => m.roll_number === roll_number);
+
+      if (userAllocation?.points > 0) {
+        await User.updateOne(
+          { roll_number: task.posted_by },
+          { $inc: { points: userAllocation.points } }
+        );
+      }
+    }
+
+    task.reward_confirmations = task.reward_confirmations.filter(
+      (confirmation) => confirmation.roll_number !== roll_number
+    );
+    task.reward_confirmations.push({ roll_number, name, status });
+    await task.save();
+
+    const received = status === "received";
+    const notification = new Notification({
+      type: received ? "reward_confirmed" : "reward_reminder",
+      sender: roll_number,
+      sender_name: name,
+      receiver: task.posted_by,
+      message: received
+        ? `${name} confirmed receiving the promised reward for your task.`
+        : `${name} says the reward was not received as promised for your task.`,
+      task_id: task._id,
+    });
+
+    await notification.save();
+    await updateUserActivity(roll_number);
+
+    res.json({
+      message: received
+        ? "Reward receipt confirmed"
+        : "Reward issue reported to task creator",
+    });
   } catch (error) {
     console.error("Reward status error:", error);
     res.status(500).json({ message: "Server error updating reward status" });

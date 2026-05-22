@@ -99,6 +99,10 @@ const taskSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  targeted_to: {
+    roll_number: { type: String, default: null },
+    email: { type: String, default: null },
+  },
   required_skills: {
     type: [String],
     default: [],
@@ -148,9 +152,19 @@ const taskSchema = new mongoose.Schema({
     ],
     default: [],
   },
-  escrow_locked: {
-    type: Boolean,
-    default: false,
+  reward_confirmations: {
+    type: [
+      {
+        roll_number: String,
+        name: String,
+        status: {
+          type: String,
+          enum: ["received", "not_received"],
+        },
+        created_at: { type: Date, default: Date.now },
+      },
+    ],
+    default: [],
   },
   bump_count: {
     type: Number,

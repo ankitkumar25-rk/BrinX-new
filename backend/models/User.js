@@ -25,11 +25,7 @@ const userSchema = new mongoose.Schema({
   },
   points: {
     type: Number,
-    default: 0,
-  },
-  escrow_points: {
-    type: Number,
-    default: 0,
+    default: 100,
   },
   skills: {
     type: [String],
