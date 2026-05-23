@@ -210,6 +210,25 @@ All API routes are prefixed with `/api`.
 
 ---
 
+## Points & Wallet Mechanics
+
+BrinX implements a highly custom points transaction and wallet model designed to ensure trust and active college peer exchange:
+
+1. **Wallet Budget Enforcement**:
+   When posting a new task, the system validates that you have sufficient points in your wallet to cover the maximum possible payout. This includes:
+   * The basic `reward_points` for a general task.
+   * The `max_reward_points` for bidding/auction tasks.
+   * **Double (2x)** the budget if the task is flagged as **SOS Urgent**.
+   If your points balance is too low, task creation is blocked with a validation error: *"Reward points must be less than or equal to your points wallet."*
+
+2. **Escrow-free Direct Transfer**:
+   Points are no longer locked in escrow upon task acceptance. Instead, they remain in the poster's wallet and are transferred directly to the helper's wallet as soon as the poster verifies task completion.
+
+3. **External Reward Points Refund**:
+   When a task is completed, the helper can confirm the receipt of their external or physical reward (e.g., cash, coffee, physical favor) by hitting `/api/tasks/reward-status/:id` with status `received`. Once the helper confirms they have received the external reward, **all points previously paid to them for that task are fully refunded back to the poster's points wallet**. This allows points to act as a temporary collateral or trust-token that gets recycled once real-world trade is satisfied!
+
+---
+
 ## Email Setup
 
 ### Development (default)

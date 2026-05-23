@@ -35,12 +35,12 @@ mongoose
     useUnifiedTopology: true,
   })
   .then(() => {
-    console.log("✅ MongoDB connected successfully");
+    console.log("MongoDB connected successfully");
     initializeTransporter().catch((err) =>
       console.error("Email init error:", err)
     );
   })
-  .catch((err) => console.error("❌ MongoDB connection error:", err));
+  .catch((err) => console.error("MongoDB connection error:", err));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/tasks", taskRoutes);
@@ -50,7 +50,7 @@ app.use("/api/users", userRoutes);
 app.get("/api", (req, res) => {
   res.json({
     status: "success",
-    message: "BrinX API is running! 🚀",
+    message: "BrinX API is running! ",
     timestamp: new Date().toISOString(),
     version: "2.0.0",
     features: {
@@ -133,8 +133,8 @@ if (process.env.VERCEL) {
 } else {
   const PORT = process.env.PORT || 5000;
   app.listen(PORT, () => {
-    console.log(`🚀 BrinX server running on port ${PORT}`);
-    console.log(`📱 Frontend: http://localhost:${PORT}`);
-    console.log(`🔌 API: http://localhost:${PORT}/api`);
+    console.log(`BrinX server running on port ${PORT}`);
+    console.log(`Frontend: http://localhost:${PORT}`);
+    console.log(`API: http://localhost:${PORT}/api`);
   });
 }

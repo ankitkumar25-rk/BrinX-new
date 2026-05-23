@@ -14,7 +14,7 @@ async function initializeTransporter() {
         pass: testAccount.pass,
       },
     });
-    console.log("📧 Using Ethereal Email (Test Mode)");
+    // console.log("Using Ethereal Email (Test Mode)");
   } else {
     transporter = nodemailer.createTransport({
       service: "gmail",
@@ -23,7 +23,7 @@ async function initializeTransporter() {
         pass: process.env.EMAIL_PASS,
       },
     });
-    console.log("📧 Using Gmail Email Service");
+    // console.log("Using Gmail Email Service");
   }
 }
 
@@ -33,7 +33,7 @@ const sendWelcomeEmail = async (email, name) => {
   const mailOptions = {
     from: process.env.EMAIL_FROM,
     to: email,
-    subject: "Welcome to BrinX! 🎉",
+    subject: "Welcome to BrinX! ",
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 20px; border-radius: 16px;">
         <div style="background: white; padding: 40px; border-radius: 12px;">
@@ -42,11 +42,11 @@ const sendWelcomeEmail = async (email, name) => {
           <p style="font-size: 16px; color: #333; line-height: 1.6;">Thank you for joining BrinX - your college task exchange platform!</p>
           
           <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="color: #667eea; margin-top: 0;">🎯 Get Started:</h3>
+            <h3 style="color: #667eea; margin-top: 0;"> Get Started:</h3>
             <ul style="color: #666; line-height: 1.8;">
               <li>Post tasks you need help with</li>
               <li>Browse and accept tasks from others</li>
-              <li>Complete tasks and earn points ⭐</li>
+              <li>Complete tasks and earn points </li>
               <li>Build your reputation in the community</li>
             </ul>
           </div>
@@ -65,7 +65,7 @@ const sendWelcomeEmail = async (email, name) => {
     const info = await transporter.sendMail(mailOptions);
     if (process.env.EMAIL_SERVICE === "ethereal") {
       console.log(
-        "📧 Welcome Email Preview: " + nodemailer.getTestMessageUrl(info)
+        " Welcome Email Preview: " + nodemailer.getTestMessageUrl(info)
       );
     }
     return true;
@@ -85,7 +85,7 @@ const sendPasswordResetEmail = async (email, resetToken, userName) => {
   const mailOptions = {
     from: process.env.EMAIL_FROM,
     to: email,
-    subject: "BrinX - Password Reset Request 🔐",
+    subject: "BrinX - Password Reset Request ",
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px 20px; border-radius: 16px 16px 0 0;">
@@ -98,7 +98,7 @@ const sendPasswordResetEmail = async (email, resetToken, userName) => {
           
           <div style="text-align: center; margin: 30px 0;">
             <a href="${resetUrl}" style="display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 12px; font-weight: bold; font-size: 16px;">
-              Reset Password 🔐
+              Reset Password 
             </a>
           </div>
           
@@ -120,7 +120,7 @@ const sendPasswordResetEmail = async (email, resetToken, userName) => {
     const info = await transporter.sendMail(mailOptions);
     if (process.env.EMAIL_SERVICE === "ethereal") {
       const testUrl = nodemailer.getTestMessageUrl(info);
-      console.log("📧 Reset Email Preview: " + testUrl);
+      console.log(" Reset Email Preview: " + testUrl);
       return { success: true, testUrl };
     }
     return { success: true };
